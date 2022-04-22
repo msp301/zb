@@ -21,6 +21,7 @@ func Parse(filepath string) Note {
 
 	fileScanner.Split(bufio.ScanLines)
 
+	var title string
 	ids := []uint64{}
 	tags := []string{}
 	links := []uint64{}
@@ -28,6 +29,17 @@ func Parse(filepath string) Note {
 	lineNum := 1
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
+
+		if len(strings.TrimSpace(line)) == 0 {
+			continue
+		}
+
+		if len(title) == 0 && !util.IsMetadataString(line) {
+			title = line
+			if strings.HasPrefix(line, "# ") {
+				title = line[2:]
+			}
+		}
 
 		if util.IdRegex.MatchString(line) {
 			id, err := strconv.ParseUint(line, 0, 64)
@@ -56,6 +68,6 @@ func Parse(filepath string) Note {
 		Id:    ids[0],
 		Links: links,
 		Tags:  tags,
-		Title: "",
+		Title: title,
 	}
 }
