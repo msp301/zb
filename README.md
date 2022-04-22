@@ -1,0 +1,2 @@
+# zb
+Zettelkasten notebook utility
