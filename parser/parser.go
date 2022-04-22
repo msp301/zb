@@ -27,17 +27,21 @@ func Parse(filepath string) Note {
 
 	lineNum := 1
 	for fileScanner.Scan() {
-		if util.IdRegex.Match((fileScanner.Bytes())) {
-			id, err := strconv.ParseUint(fileScanner.Text(), 0, 64)
+		line := fileScanner.Text()
+
+		if util.IdRegex.MatchString(line) {
+			id, err := strconv.ParseUint(line, 0, 64)
 			if err == nil {
 				ids = append(ids, id)
 			}
 		}
-		if strings.Contains(fileScanner.Text(), `#`) {
-			tags = append(tags, util.TagRegex.FindAllString(fileScanner.Text(), -1)...)
+
+		if strings.Contains(line, `#`) {
+			tags = append(tags, util.TagRegex.FindAllString(line, -1)...)
 		}
-		if strings.Contains(fileScanner.Text(), `[[`) {
-			for _, str := range util.LinkRegex.FindAllString(fileScanner.Text(), -1) {
+
+		if strings.Contains(line, `[[`) {
+			for _, str := range util.LinkRegex.FindAllString(line, -1) {
 				link, err := strconv.ParseUint(str, 0, 64)
 				if err == nil {
 					links = append(links, link)
