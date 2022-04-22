@@ -1,49 +1,23 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/msp301/zb/util"
+	"github.com/msp301/zb/parser"
 )
 
 func main() {
 
 	filename := os.Args[1]
 
-	fileReader, err := os.Open(filename)
-	defer fileReader.Close()
+	note := parser.Parse(filename)
 
+	json, err := json.Marshal(note)
 	if err != nil {
 		panic(err)
 	}
 
-	fileScanner := bufio.NewScanner(fileReader)
-
-	fileScanner.Split(bufio.ScanLines)
-
-	ids := []string{}
-	tags := []string{}
-	links := []string{}
-
-	lineNum := 2
-	for fileScanner.Scan() {
-		if util.IdRegex.Match((fileScanner.Bytes())) {
-			ids = append(ids, fileScanner.Text())
-		}
-		if strings.Contains(fileScanner.Text(), `#`) {
-			tags = append(tags, util.TagRegex.FindAllString(fileScanner.Text(), -1)...)
-		}
-		if strings.Contains(fileScanner.Text(), `[[`) {
-			links = append(links, util.LinkRegex.FindAllString(fileScanner.Text(), -1)...)
-		}
-		lineNum++
-	}
-
-	fmt.Println("ID: ", ids)
-	fmt.Println("Tags: ", tags)
-	fmt.Println("Links: ", links)
-	fmt.Println("File:", filename)
+	fmt.Println(string(json))
 }
