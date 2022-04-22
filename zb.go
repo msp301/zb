@@ -3,21 +3,35 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/msp301/zb/parser"
 )
 
 func main() {
 
-	filename := os.Args[1]
+	dirname := os.Args[1]
 
-	note := parser.Parse(filename)
+	filepath.Walk(dirname, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 
-	json, err := json.Marshal(note)
-	if err != nil {
-		panic(err)
-	}
+		if !strings.HasSuffix(info.Name(), ".md") {
+			return nil
+		}
 
-	fmt.Println(string(json))
+		note := parser.Parse(path)
+
+		json, err := json.Marshal(note)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(string(json))
+		return nil
+	})
 }
