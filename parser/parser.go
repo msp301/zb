@@ -4,11 +4,23 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/msp301/zb/util"
 )
+
+type Tag struct {
+	Name    string
+	LineNum int
+}
+
+type ByLineNum []Tag
+
+func (l ByLineNum) Len() int           { return len(l) }
+func (l ByLineNum) Less(a, b int) bool { return l[a].LineNum < l[b].LineNum }
+func (l ByLineNum) Swap(a, b int)      { l[a], l[b] = l[b], l[a] }
 
 func Parse(filepath string) Note {
 	fileReader, err := os.Open(filepath)
@@ -26,7 +38,7 @@ func Parse(filepath string) Note {
 	var content_start int
 	var title string
 	ids := []uint64{}
-	tags := []string{}
+	tagMap := map[string]int{}
 	links := []uint64{}
 
 	lineNum := 1
@@ -60,8 +72,8 @@ func Parse(filepath string) Note {
 
 		if strings.Contains(line, `#`) {
 			for _, tag := range util.TagRegex.FindAllString(line, -1) {
-				if !strings.Contains(line, fmt.Sprintf("\\%s", tag)) {
-					tags = append(tags, tag)
+				if tagMap[tag] == 0 && !strings.Contains(line, fmt.Sprintf("\\%s", tag)) {
+					tagMap[tag] = lineNum
 				}
 			}
 		}
@@ -77,12 +89,24 @@ func Parse(filepath string) Note {
 		lineNum++
 	}
 
+	tags := make([]Tag, len(tagMap))
+	index := 0
+	for key, value := range tagMap {
+		tags[index] = Tag{Name: key, LineNum: value}
+		index++
+	}
+	sort.Sort(ByLineNum(tags))
+	tagNames := make([]string, len(tags))
+	for i, tag := range tags {
+		tagNames[i] = tag.Name
+	}
+
 	return Note{
 		Content: strings.TrimSpace(content),
 		File:    filepath,
 		Id:      ids[0],
 		Links:   links,
-		Tags:    tags,
+		Tags:    tagNames,
 		Title:   title,
 	}
 }

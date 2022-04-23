@@ -34,3 +34,18 @@ func TestParseCRLFNote(t *testing.T) {
 		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
 	}
 }
+
+func TestParseDuplicateTags(t *testing.T) {
+	got := Parse("examples/tags.md")
+	want := Note{
+		Content: "This is a #test file. #test\nWith #several #tags mentioned\n#several times.\n#Order is preserved.\n\\#ignored",
+		File:    "examples/tags.md",
+		Id:      202204192322,
+		Links:   []uint64{},
+		Tags:    []string{"#test", "#several", "#tags", "#Order"},
+		Title:   "Test tags mentioned multiple times",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
+	}
+}
