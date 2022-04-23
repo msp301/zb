@@ -18,9 +18,11 @@ type Tag struct {
 
 type ByLineNum []Tag
 
-func (l ByLineNum) Len() int           { return len(l) }
-func (l ByLineNum) Less(a, b int) bool { return l[a].LineNum < l[b].LineNum }
-func (l ByLineNum) Swap(a, b int)      { l[a], l[b] = l[b], l[a] }
+func (l ByLineNum) Len() int { return len(l) }
+func (l ByLineNum) Less(a, b int) bool {
+	return l[a].LineNum < l[b].LineNum || l[a].LineNum == l[b].LineNum && strings.ToLower(l[a].Name) < strings.ToLower(l[b].Name)
+}
+func (l ByLineNum) Swap(a, b int) { l[a], l[b] = l[b], l[a] }
 
 func Parse(filepath string) Note {
 	fileReader, err := os.Open(filepath)
