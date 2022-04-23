@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -21,6 +22,8 @@ func Parse(filepath string) Note {
 
 	fileScanner.Split(bufio.ScanLines)
 
+	var content string
+	var content_start int
 	var title string
 	ids := []uint64{}
 	tags := []string{}
@@ -34,11 +37,18 @@ func Parse(filepath string) Note {
 			continue
 		}
 
+		if content_start > 0 {
+			content += fmt.Sprintln(line)
+		}
+
 		if len(title) == 0 && !util.IsMetadataString(line) {
+			content_start = lineNum
 			title = line
 			if strings.HasPrefix(line, "# ") {
 				title = line[2:]
+				continue
 			}
+			content += fmt.Sprintln(line)
 		}
 
 		if util.IdRegex.MatchString(line) {
@@ -64,10 +74,11 @@ func Parse(filepath string) Note {
 	}
 
 	return Note{
-		File:  filepath,
-		Id:    ids[0],
-		Links: links,
-		Tags:  tags,
-		Title: title,
+		Content: content,
+		File:    filepath,
+		Id:      ids[0],
+		Links:   links,
+		Tags:    tags,
+		Title:   title,
 	}
 }
