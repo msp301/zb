@@ -16,6 +16,6 @@ func TestParseValidNote(t *testing.T) {
 		Title:   "This is a test file. #test",
 	}
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("Unexpected note: %+v", got)
+		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
 	}
 }

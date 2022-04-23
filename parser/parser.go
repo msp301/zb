@@ -59,7 +59,11 @@ func Parse(filepath string) Note {
 		}
 
 		if strings.Contains(line, `#`) {
-			tags = append(tags, util.TagRegex.FindAllString(line, -1)...)
+			for _, tag := range util.TagRegex.FindAllString(line, -1) {
+				if !strings.Contains(line, fmt.Sprintf("\\%s", tag)) {
+					tags = append(tags, tag)
+				}
+			}
 		}
 
 		if strings.Contains(line, `[[`) {
@@ -74,7 +78,7 @@ func Parse(filepath string) Note {
 	}
 
 	return Note{
-		Content: content,
+		Content: strings.TrimSpace(content),
 		File:    filepath,
 		Id:      ids[0],
 		Links:   links,
