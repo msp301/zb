@@ -63,8 +63,8 @@ func Parse(filepath string) Note {
 		}
 
 		if strings.Contains(line, `[[`) {
-			for _, str := range util.LinkRegex.FindAllString(line, -1) {
-				link, err := strconv.ParseUint(str, 0, 64)
+			for _, str := range util.LinkRegex.FindAllStringSubmatch(line, -1) {
+				link, err := strconv.ParseUint(str[1], 0, 64)
 				if err == nil {
 					links = append(links, link)
 				}
