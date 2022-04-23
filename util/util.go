@@ -11,7 +11,7 @@ var LinkRegex *regexp.Regexp
 
 func init() {
 	IdRegex = regexp.MustCompile(`^(\d{12})$`)
-	TagRegex = regexp.MustCompile(`\B(#\.?\w+)`)
+	TagRegex = regexp.MustCompile(`\B(#\.?\w[^\s]+)\b`)
 	LinkRegex = regexp.MustCompile(`\B\[\[([\d\s\/:]+)\]\]`)
 }
 
