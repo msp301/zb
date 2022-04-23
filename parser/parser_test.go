@@ -19,3 +19,18 @@ func TestParseValidNote(t *testing.T) {
 		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
 	}
 }
+
+func TestParseCRLFNote(t *testing.T) {
+	got := Parse("examples/windows_note.md")
+	want := Note{
+		Content: "Test Windows line endings.",
+		File:    "examples/windows_note.md",
+		Id:      202003092017,
+		Links:   []uint64{},
+		Tags:    []string{"#Windows"},
+		Title:   "Test Windows line endings.",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
+	}
+}
