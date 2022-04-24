@@ -49,3 +49,18 @@ func TestParseDuplicateTags(t *testing.T) {
 		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
 	}
 }
+
+func TestParseMultiNoteFile(t *testing.T) {
+	got := Parse("examples/multi_note.md")
+	want := Note{
+		Content: "talk about some #thing",
+		File:    "examples/multi_note.md",
+		Id:      202001300000,
+		Links:   []uint64{},
+		Tags:    []string{"#thing"},
+		Title:   "First note",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
+	}
+}
