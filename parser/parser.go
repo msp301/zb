@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/msp301/zb/util"
 )
 
-func Parse(filepath string) Note {
+func Parse(filepath string) []Note {
 	fileReader, err := os.Open(filepath)
 	defer fileReader.Close()
 
@@ -21,6 +22,8 @@ func Parse(filepath string) Note {
 	fileScanner := bufio.NewScanner(fileReader)
 
 	fileScanner.Split(bufio.ScanLines)
+
+	var notes []Note
 
 	var content string
 	var content_start int
@@ -34,6 +37,30 @@ func Parse(filepath string) Note {
 		line := fileScanner.Text()
 
 		if len(strings.TrimSpace(line)) == 0 {
+			continue
+		}
+
+		isNoteDivider, _ := regexp.Match(`^\s*-{3,}`, fileScanner.Bytes())
+		if isNoteDivider {
+			note := Note{
+				Content: strings.TrimSpace(content),
+				File:    filepath,
+				Links:   links,
+				Tags:    ConvertTagMapToTagNames(tagMap),
+				Title:   title,
+			}
+			if len(ids) == 1 {
+				note.Id = ids[0]
+			}
+			notes = append(notes, note)
+
+			content = ""
+			content_start = 0
+			ids = []uint64{}
+			links = []uint64{}
+			tagMap = map[string]int{}
+			title = ""
+
 			continue
 		}
 
@@ -77,12 +104,17 @@ func Parse(filepath string) Note {
 		lineNum++
 	}
 
-	return Note{
+	note := Note{
 		Content: strings.TrimSpace(content),
 		File:    filepath,
-		Id:      ids[0],
 		Links:   links,
 		Tags:    ConvertTagMapToTagNames(tagMap),
 		Title:   title,
 	}
+	if len(ids) == 1 {
+		note.Id = ids[0]
+	}
+	notes = append(notes, note)
+
+	return notes
 }
