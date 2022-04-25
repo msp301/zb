@@ -10,17 +10,27 @@ import (
 )
 
 type Notebook struct {
-	Path string
+	Filters []FilterFunc
+	lookup  map[uint64]parser.Note
+	Path    string
+	Notes   []parser.Note
 }
+
+type FilterFunc func(note parser.Note) bool
 
 func New(path string) Notebook {
 	return Notebook{
-		Path: path,
+		Path:   path,
+		lookup: map[uint64]parser.Note{},
 	}
 }
 
+func (book *Notebook) AddFilter(filter FilterFunc) {
+	book.Filters = append(book.Filters, filter)
+}
+
 func (book *Notebook) Read() []parser.Note {
-	var notes []parser.Note
+	var filteredNotes []parser.Note
 
 	filepath.Walk(book.Path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -31,10 +41,28 @@ func (book *Notebook) Read() []parser.Note {
 			return nil
 		}
 
-		notes = append(notes, parser.Parse(path)...)
+		fileNotes := parser.Parse(path)
+		book.Notes = append(book.Notes, fileNotes...)
+
+	NOTE:
+		for _, note := range fileNotes {
+			book.lookup[note.Id] = note
+
+			for _, filter := range book.Filters {
+				if filter(note) {
+					continue NOTE
+				}
+			}
+			filteredNotes = append(filteredNotes, note)
+		}
 
 		return nil
 	})
 
-	return notes
+	return filteredNotes
+}
+
+func (book *Notebook) GetNote(noteId uint64) (parser.Note, bool) {
+	note, ok := book.lookup[noteId]
+	return note, ok
 }
