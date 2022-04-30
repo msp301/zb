@@ -140,8 +140,12 @@ func (book *Notebook) GetNote(noteId uint64) (parser.Note, bool) {
 }
 
 func (book *Notebook) addTag(tag string) uint64 {
-	tagNum := len(book.tags)
-	tagId := uint64(tagNum + 1)
-	book.tags[tag] = tagId
+	tagId, ok := book.tags[tag]
+	if !ok {
+		tagNum := len(book.tags)
+		tagId = uint64(tagNum + 1)
+		book.tags[tag] = tagId
+	}
+
 	return tagId
 }
