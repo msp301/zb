@@ -13,6 +13,10 @@ func New() *Graph {
 }
 
 func (g *Graph) AddVertex(id uint64) {
+	_, exists := g.Vertices[id]
+	if exists {
+		return
+	}
 	g.Vertices[id] = true
 }
 

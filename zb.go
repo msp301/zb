@@ -44,8 +44,7 @@ func isValidNote(note parser.Note, book notebook.Notebook) bool {
 	}
 
 	for _, link := range note.Links {
-		_, ok := book.GetNote(link)
-		if !ok {
+		if !book.IsNote(link) {
 			return false
 		}
 	}

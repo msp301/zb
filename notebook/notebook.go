@@ -2,13 +2,15 @@ package notebook
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
-	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/parser"
+	"github.com/msp301/zb/util"
 )
 
 type Notebook struct {
@@ -39,16 +41,34 @@ func (book *Notebook) AddFilter(filter FilterFunc) {
 
 func (book *Notebook) Read() []parser.Note {
 	var filteredNotes []parser.Note
+	var noteFiles []string
 
-	filepath.Walk(book.Path, func(path string, info os.FileInfo, err error) error {
+	filepath.WalkDir(book.Path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
 
-		if !strings.HasSuffix(info.Name(), ".md") {
+		if !strings.HasSuffix(d.Name(), ".md") {
 			return nil
 		}
 
+		nameWithoutSuffix := strings.TrimSuffix(d.Name(), ".md")
+		if !util.IdRegex.MatchString(nameWithoutSuffix) {
+			return nil
+		}
+
+		fileId, err := strconv.ParseUint(nameWithoutSuffix, 0, 64)
+		if err != nil {
+			return nil
+		}
+
+		book.linkGraph.AddVertex(fileId)
+		noteFiles = append(noteFiles, path)
+
+		return nil
+	})
+
+	for _, path := range noteFiles {
 		fileNotes := parser.Parse(path)
 		book.Notes = append(book.Notes, fileNotes...)
 
@@ -82,9 +102,7 @@ func (book *Notebook) Read() []parser.Note {
 			}
 			filteredNotes = append(filteredNotes, note)
 		}
-
-		return nil
-	})
+	}
 
 	tagKeys := map[uint64]string{}
 	for key, val := range book.tags {
@@ -107,6 +125,11 @@ func (book *Notebook) Read() []parser.Note {
 	fmt.Println(tagMap)
 
 	return filteredNotes
+}
+
+func (book *Notebook) IsNote(noteId uint64) bool {
+	_, ok := book.linkGraph.Vertices[noteId]
+	return ok
 }
 
 func (book *Notebook) GetNote(noteId uint64) (parser.Note, bool) {
