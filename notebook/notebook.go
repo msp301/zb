@@ -96,7 +96,8 @@ func (book *Notebook) Read() []parser.Note {
 			}
 
 			for _, filter := range book.Filters {
-				if filter(note) {
+				filtered := filter(note)
+				if filtered {
 					continue NOTE
 				}
 			}
