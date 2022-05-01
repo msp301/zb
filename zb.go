@@ -26,7 +26,7 @@ func main() {
 	switch action {
 	case "check":
 		book.AddFilter(func(note parser.Note) bool {
-			return !isValidNote(note, book)
+			return isValidNote(note, book)
 		})
 	}
 
