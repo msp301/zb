@@ -25,8 +25,8 @@ type Notebook struct {
 
 type FilterFunc func(note parser.Note) bool
 
-func New(path string) Notebook {
-	return Notebook{
+func New(path string) *Notebook {
+	return &Notebook{
 		Path:      path,
 		lookup:    map[uint64]parser.Note{},
 		linkGraph: graph.New(),

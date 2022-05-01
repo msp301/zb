@@ -38,7 +38,7 @@ func main() {
 	fmt.Println(string(json))
 }
 
-func isValidNote(note parser.Note, book notebook.Notebook) bool {
+func isValidNote(note parser.Note, book *notebook.Notebook) bool {
 	if note.Id == 0 {
 		return false
 	}
