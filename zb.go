@@ -30,12 +30,20 @@ func main() {
 		})
 	}
 
-	json, err := json.Marshal(book.Read())
-	if err != nil {
-		panic(err)
-	}
+	notes := book.Read()
 
-	fmt.Println(string(json))
+	switch action {
+	case "outline":
+		for _, note := range notes {
+			fmt.Printf("%s - %s\n", note.File, note.Title)
+		}
+	default:
+		json, err := json.Marshal(notes)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(json))
+	}
 }
 
 func isValidNote(note parser.Note, book *notebook.Notebook) bool {
