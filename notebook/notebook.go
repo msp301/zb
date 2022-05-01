@@ -1,7 +1,6 @@
 package notebook
 
 import (
-	"fmt"
 	"io/fs"
 	"log"
 	"path/filepath"
@@ -120,24 +119,12 @@ func (book *Notebook) Read() []parser.Note {
 		}
 	}
 
-	//fmt.Println(book.linkGraph.Edges)
-	//fmt.Println(book.tagGraph.Edges)
-	fmt.Println(book.tagGraph.Vertices)
-	fmt.Println(tagMap)
-
 	return filteredNotes
 }
 
 func (book *Notebook) IsNote(noteId uint64) bool {
 	_, ok := book.linkGraph.Vertices[noteId]
 	return ok
-}
-
-func (book *Notebook) GetNote(noteId uint64) (parser.Note, bool) {
-	note, ok := book.lookup[noteId]
-	return note, ok
-	//note, ok := book.lookup.GetVertex(noteId)
-	//return note, ok
 }
 
 func (book *Notebook) addTag(tag string) uint64 {
