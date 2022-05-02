@@ -74,3 +74,22 @@ func TestIsEdge(t *testing.T) {
 		}
 	}
 }
+
+func TestWalk(t *testing.T) {
+	graph := &Graph{
+		Vertices: map[uint64]bool{1: true, 2: true, 3: true, 4: true, 5: true},
+		Edges:    map[uint64][]uint64{},
+	}
+	graph.AddEdge(1, 2)
+	graph.AddEdge(2, 4)
+	graph.AddEdge(2, 3)
+
+	got := []uint64{}
+	graph.Walk(func(id uint64, depth int) bool { got = append(got, id); return true })
+
+	want := []uint64{1, 2, 4, 3, 5}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Expected: %v\nGot: %v\n", want, got)
+	}
+}
