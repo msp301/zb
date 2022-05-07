@@ -1,39 +1,64 @@
 package graph
 
 import (
+	"fmt"
 	"sort"
 )
 
+type Vertex struct {
+	Id         uint64
+	Label      string
+	Properties interface{}
+}
+
+type Edge struct {
+	Id         uint64
+	Label      string
+	Properties interface{}
+	From       uint64
+	To         uint64
+}
+
 type Graph struct {
-	Vertices map[uint64]bool
-	Edges    map[uint64][]uint64
+	Vertices  map[uint64]Vertex
+	Edges     map[uint64]Edge
+	Adjacency map[uint64][]uint64
 }
 
 func New() *Graph {
 	return &Graph{
-		Vertices: map[uint64]bool{},
-		Edges:    map[uint64][]uint64{},
+		Vertices:  map[uint64]Vertex{},
+		Edges:     map[uint64]Edge{},
+		Adjacency: map[uint64][]uint64{},
 	}
 }
 
-func (g *Graph) AddVertex(id uint64) {
-	_, exists := g.Vertices[id]
-	if exists {
-		return
-	}
-	g.Vertices[id] = true
+func (g *Graph) AddVertex(vertex Vertex) {
+	g.Vertices[vertex.Id] = vertex
 }
 
 func (g *Graph) AddEdge(v1, v2 uint64) {
-	if g.IsEdge(v1, v2) {
-		return
+	if !g.IsVertex(v1) {
+		err := fmt.Sprintf("Vertex does not exist: %v", v1)
+		panic(err)
 	}
-	g.Edges[v1] = append(g.Edges[v1], v2)
-	g.Edges[v2] = append(g.Edges[v2], v1)
+	if !g.IsVertex(v2) {
+		err := fmt.Sprintf("Vertex does not exist: %v", v2)
+		panic(err)
+	}
+	g.addEdge(v1, v2)
+	g.addEdge(v2, v1)
+}
+
+func (g *Graph) addEdge(v1, v2 uint64) {
+	g.Adjacency[v1] = append(g.Adjacency[v1], v2)
+
+	edgeId := uint64(len(g.Edges) + 1)
+	g.Edges[edgeId] = Edge{Id: edgeId, Label: "link", From: v1, To: v2}
 }
 
 func (g *Graph) IsEdge(v1, v2 uint64) bool {
-	for _, v := range g.Edges[v1] {
+	for _, v := range g.Adjacency[v1] {
 		if v == v2 {
 			return true
 		}
@@ -41,7 +66,12 @@ func (g *Graph) IsEdge(v1, v2 uint64) bool {
 	return false
 }
 
-type WalkFunc func(id uint64, depth int) bool
+func (g *Graph) IsVertex(id uint64) bool {
+	_, exists := g.Vertices[id]
+	return exists
+}
+
+type WalkFunc func(vertex Vertex, depth int) bool
 
 func (g *Graph) Walk(callback WalkFunc) {
 	visited := map[uint64]bool{}
@@ -52,22 +82,24 @@ func (g *Graph) Walk(callback WalkFunc) {
 	}
 	sort.Slice(sortedVertices, func(a, b int) bool { return sortedVertices[a] < sortedVertices[b] })
 
-	for _, vertex := range sortedVertices {
+	for _, id := range sortedVertices {
+		vertex := g.Vertices[id]
 		g.walk(vertex, 0, visited, callback)
 	}
 }
 
-func (g *Graph) walk(vertex uint64, depth int, visited map[uint64]bool, callback WalkFunc) {
-	if visited[vertex] {
+func (g *Graph) walk(vertex Vertex, depth int, visited map[uint64]bool, callback WalkFunc) {
+	if visited[vertex.Id] {
 		return
 	}
 
 	callback(vertex, depth)
 
-	visited[vertex] = true
+	visited[vertex.Id] = true
 
-	for _, child := range g.Edges[vertex] {
-		if visited[child] {
+	for _, childId := range g.Adjacency[vertex.Id] {
+		child := g.Vertices[childId]
+		if visited[childId] {
 			continue
 		}
 

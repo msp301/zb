@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/notebook"
 	"github.com/msp301/zb/parser"
 )
@@ -34,9 +36,13 @@ func main() {
 
 	switch action {
 	case "outline":
-		for _, note := range notes {
-			fmt.Printf("%s - %s\n", note.File, note.Title)
-		}
+		book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
+			indent := strings.Repeat("\t", depth)
+			switch val := vertex.Properties.(type) {
+			case parser.Note:
+				fmt.Printf("%s%s - %s\n", indent, val.File, val.Title)
+			return true
+		})
 	default:
 		json, err := json.Marshal(notes)
 		if err != nil {
