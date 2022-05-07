@@ -76,7 +76,7 @@ type WalkFunc func(vertex Vertex, depth int) bool
 func (g *Graph) Walk(callback WalkFunc) {
 	visited := map[uint64]bool{}
 
-	sortedVertices := []uint64{}
+	var sortedVertices []uint64
 	for vertex := range g.Vertices {
 		sortedVertices = append(sortedVertices, vertex)
 	}

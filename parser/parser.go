@@ -26,11 +26,11 @@ func Parse(filepath string) []Note {
 	var notes []Note
 
 	var content string
-	var content_start int
+	var contentStart int
 	var title string
-	ids := []uint64{}
+	var ids []uint64
 	tagMap := map[string]int{}
-	links := []uint64{}
+	var links []uint64
 
 	lineNum := 1
 	for fileScanner.Scan() {
@@ -55,7 +55,7 @@ func Parse(filepath string) []Note {
 			notes = append(notes, note)
 
 			content = ""
-			content_start = 0
+			contentStart = 0
 			ids = []uint64{}
 			links = []uint64{}
 			tagMap = map[string]int{}
@@ -64,12 +64,12 @@ func Parse(filepath string) []Note {
 			continue
 		}
 
-		if content_start > 0 {
+		if contentStart > 0 {
 			content += fmt.Sprintln(line)
 		}
 
 		if len(title) == 0 && !util.IsMetadataString(line) {
-			content_start = lineNum
+			contentStart = lineNum
 			title = line
 			if strings.HasPrefix(line, "# ") {
 				title = line[2:]
