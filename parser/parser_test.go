@@ -43,7 +43,7 @@ func TestParseDuplicateTags(t *testing.T) {
 	got := Parse("examples/tags.md")
 	want := []Note{
 		{
-			Content: "This is a #test file. #test\nWith #several #tags mentioned\n#several times.\n## Subheading\n#Order is preserved.\nThis is a tag in quotes \"#1-1\"\n#C# is a vaild tag.\n\\#ignored",
+			Content: "This is a #test file. #test\nWith #several #tags mentioned\n#several times.\n## Subheading\n#Order is preserved.\nThis is a tag in quotes \"#1-1\"\n#C# is a valid tag.\n\\#ignored",
 			File:    "examples/tags.md",
 			Id:      202204192322,
 			Links:   []uint64{},

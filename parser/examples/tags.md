@@ -10,6 +10,6 @@ With #several #tags mentioned
 
 #Order is preserved.
 This is a tag in quotes "#1-1"
-#C# is a vaild tag.
+#C# is a valid tag.
 
 \#ignored
