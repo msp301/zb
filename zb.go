@@ -41,14 +41,15 @@ func main() {
 			switch val := vertex.Properties.(type) {
 			case parser.Note:
 				fmt.Printf("%s%s - %s\n", indent, val.File, val.Title)
+			}
 			return true
 		})
 	default:
-		json, err := json.Marshal(notes)
+		jsonStr, err := json.Marshal(notes)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(string(json))
+		fmt.Println(string(jsonStr))
 	}
 }
 
