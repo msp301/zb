@@ -13,24 +13,19 @@ import (
 )
 
 type Notebook struct {
-	Filters  []FilterFunc
-	lookup   map[uint64]parser.Note
-	Notes    *graph.Graph
-	tags     map[string]uint64
-	tagGraph *graph.Graph
-	Path     string
-	notes    []parser.Note
+	Filters []FilterFunc
+	Notes   *graph.Graph
+	tags    map[string]uint64
+	Path    string
 }
 
 type FilterFunc func(note parser.Note) bool
 
 func New(path string) *Notebook {
 	return &Notebook{
-		Path:     path,
-		lookup:   map[uint64]parser.Note{},
-		Notes:    graph.New(),
-		tags:     map[string]uint64{},
-		tagGraph: graph.New(),
+		Path:  path,
+		Notes: graph.New(),
+		tags:  map[string]uint64{},
 	}
 }
 
@@ -42,7 +37,7 @@ func (book *Notebook) Read() []parser.Note {
 	var filteredNotes []parser.Note
 	var noteFiles []string
 
-	filepath.WalkDir(book.Path, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(book.Path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -66,14 +61,15 @@ func (book *Notebook) Read() []parser.Note {
 
 		return nil
 	})
+	if err != nil {
+		return nil
+	}
 
 	for _, path := range noteFiles {
 		fileNotes := parser.Parse(path)
-		book.notes = append(book.notes, fileNotes...)
 
 	NOTE:
 		for _, note := range fileNotes {
-			book.lookup[note.Id] = note
 			book.Notes.AddVertex(graph.Vertex{Id: note.Id, Label: "note", Properties: note})
 
 			for _, link := range note.Links {
@@ -110,21 +106,6 @@ func (book *Notebook) Read() []parser.Note {
 			filteredNotes = append(filteredNotes, note)
 		}
 	}
-
-	tagKeys := map[uint64]string{}
-	for key, val := range book.tags {
-		tagKeys[val] = key
-	}
-
-	//tagMap := map[string][]string{}
-	//for tag, relatedTags := range book.tagGraph.Edges {
-	//	for _, relatedTag := range relatedTags {
-	//		tagStr, ok := tagKeys[tag]
-	//		if ok {
-	//			tagMap[tagStr] = append(tagMap[tagStr], tagKeys[relatedTag])
-	//		}
-	//	}
-	//}
 
 	return filteredNotes
 }

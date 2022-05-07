@@ -34,6 +34,9 @@ func New() *Graph {
 }
 
 func (g *Graph) AddVertex(vertex Vertex) {
+	if vertex.Id == 0 {
+		vertex.Id = uint64(len(g.Vertices) + 1)
+	}
 	g.Vertices[vertex.Id] = vertex
 }
 
