@@ -1,9 +1,11 @@
 package notebook
 
 import (
+	"fmt"
 	"io/fs"
 	"log"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -113,6 +115,18 @@ func (book *Notebook) Read() []parser.Note {
 func (book *Notebook) IsNote(noteId uint64) bool {
 	_, ok := book.Notes.Vertices[noteId]
 	return ok
+}
+
+func (book *Notebook) Tags() []string {
+	var tags []string
+	book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
+		if vertex.Label == "tag" {
+			tags = append(tags, fmt.Sprint(vertex.Properties))
+		}
+		return true
+	})
+	sort.Strings(tags)
+	return tags
 }
 
 func (book *Notebook) addTag(tag string) uint64 {

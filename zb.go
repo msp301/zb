@@ -44,6 +44,10 @@ func main() {
 			}
 			return true
 		})
+	case "tags":
+		for _, tag := range book.Tags() {
+			fmt.Println(tag)
+		}
 	default:
 		jsonStr, err := json.Marshal(notes)
 		if err != nil {
