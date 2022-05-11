@@ -119,12 +119,10 @@ func (book *Notebook) IsNote(noteId uint64) bool {
 
 func (book *Notebook) Tags() []string {
 	var tags []string
-	book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
-		if vertex.Label == "tag" {
-			tags = append(tags, fmt.Sprint(vertex.Properties))
-		}
-		return true
-	})
+	traversal := graph.Traversal(book.Notes)
+	for tag := range traversal.V().HasLabel("tag").Iterate() {
+		tags = append(tags, fmt.Sprint(tag.Properties))
+	}
 	sort.Strings(tags)
 	return tags
 }
