@@ -63,7 +63,7 @@ func TestNext(t *testing.T) {
 		if vertex == nil && want[i] != nil {
 			t.Fatalf("Expected: %v\nGot: nil", want[i])
 		}
-		if vertex != want[i] {
+		if !reflect.DeepEqual(vertex, want[i]) {
 			t.Fatalf("Expected: %v\nGot: %v\n", want[i], vertex)
 		}
 	}
