@@ -69,6 +69,29 @@ func TestNext(t *testing.T) {
 	}
 }
 
+type testData struct {
+	Title string
+	Tags  []string
+}
+
+func TestHas(t *testing.T) {
+	g := New()
+	g.AddVertex(Vertex{Id: 1, Properties: testData{Title: "foo", Tags: []string{"a", "b"}}})
+	g.AddVertex(Vertex{Id: 2, Properties: testData{Title: "bar", Tags: []string{"a", "c"}}})
+	g.AddVertex(Vertex{Id: 3, Properties: testData{Title: "foo", Tags: []string{"a", "b"}}})
+
+	var vertices []uint64
+	for vertex := range Traversal(g).V().Has("Tags", "c").Iterate() {
+		vertices = append(vertices, vertex.Id)
+	}
+
+	want := []uint64{2}
+	if !reflect.DeepEqual(vertices, want) {
+		t.Fatalf("Expected: %v\nGot: %v\n", want, vertices)
+	}
+
+}
+
 func TestHasLabel(t *testing.T) {
 	g := New()
 	g.AddVertex(Vertex{Id: 1, Label: "foo"})

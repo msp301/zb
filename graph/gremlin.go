@@ -1,15 +1,19 @@
 package graph
 
-import "sort"
+import (
+	"reflect"
+	"sort"
+)
 
 type TraversalSource struct {
-	channel  chan Vertex
-	graph    *Graph
-	what     string
-	label    map[string]bool
-	position *Vertex
-	sorted   []uint64
-	visited  map[uint64]bool
+	channel    chan Vertex
+	graph      *Graph
+	what       string
+	label      map[string]bool
+	properties map[string]interface{}
+	position   *Vertex
+	sorted     []uint64
+	visited    map[uint64]bool
 }
 
 func Traversal(g *Graph) *TraversalSource {
@@ -21,6 +25,14 @@ func Traversal(g *Graph) *TraversalSource {
 
 func (t *TraversalSource) V() *TraversalSource {
 	t.what = "vertex"
+	return t
+}
+
+func (t *TraversalSource) Has(prop string, value interface{}) *TraversalSource {
+	if t.properties == nil {
+		t.properties = map[string]interface{}{}
+	}
+	t.properties[prop] = value
 	return t
 }
 
@@ -73,6 +85,30 @@ func (t *TraversalSource) walk(channel chan Vertex, vertex Vertex, depth int) {
 	}
 	if t.label != nil && t.label[vertex.Label] == false {
 		return
+	}
+
+	if t.properties != nil {
+		matchedProperty := false
+		for key, want := range t.properties {
+			properties := reflect.ValueOf(vertex.Properties)
+			property := properties.FieldByName(key)
+			kind := reflect.ValueOf(property).Kind()
+			if kind == reflect.Array || kind == reflect.Slice {
+				elems := make([]interface{}, property.Len())
+				for i := 0; i < property.Len(); i++ {
+					elems[i] = property.Index(i).Interface()
+				}
+
+				for _, val := range elems {
+					if reflect.DeepEqual(val, want) {
+						matchedProperty = true
+					}
+				}
+			}
+		}
+		if matchedProperty == false {
+			return
+		}
 	}
 
 	channel <- vertex
