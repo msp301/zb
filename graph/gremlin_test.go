@@ -63,22 +63,17 @@ func TestNext(t *testing.T) {
 		if vertex == nil && want[i] != nil {
 			t.Fatalf("Expected: %v\nGot: nil", want[i])
 		}
-		if *vertex != *want[i] {
+		if vertex != want[i] {
 			t.Fatalf("Expected: %v\nGot: %v\n", want[i], vertex)
 		}
 	}
 }
 
-type testData struct {
-	Title string
-	Tags  []string
-}
-
 func TestHas(t *testing.T) {
 	g := New()
-	g.AddVertex(Vertex{Id: 1, Properties: testData{Title: "foo", Tags: []string{"a", "b"}}})
-	g.AddVertex(Vertex{Id: 2, Properties: testData{Title: "bar", Tags: []string{"a", "c"}}})
-	g.AddVertex(Vertex{Id: 3, Properties: testData{Title: "foo", Tags: []string{"a", "b"}}})
+	g.AddVertex(Vertex{Id: 1, Properties: map[string]interface{}{"Title": "foo", "Tags": "b"}})
+	g.AddVertex(Vertex{Id: 2, Properties: map[string]interface{}{"Title": "bar", "Tags": []string{"a", "c"}}})
+	g.AddVertex(Vertex{Id: 3, Properties: map[string]interface{}{"Title": "foo", "Tags": []string{"a", "b"}}})
 
 	var vertices []uint64
 	for vertex := range Traversal(g).V().Has("Tags", "c").Iterate() {

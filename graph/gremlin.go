@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"reflect"
 	"sort"
 )
 
@@ -90,18 +89,18 @@ func (t *TraversalSource) walk(channel chan Vertex, vertex Vertex, depth int) {
 	if t.properties != nil {
 		matchedProperty := false
 		for key, want := range t.properties {
-			properties := reflect.ValueOf(vertex.Properties)
-			property := properties.FieldByName(key)
-			kind := reflect.ValueOf(property).Kind()
-			if kind == reflect.Array || kind == reflect.Slice {
-				elems := make([]interface{}, property.Len())
-				for i := 0; i < property.Len(); i++ {
-					elems[i] = property.Index(i).Interface()
-				}
-
-				for _, val := range elems {
-					if reflect.DeepEqual(val, want) {
+			property, ok := vertex.Properties[key]
+			if ok {
+				switch prop := property.(type) {
+				case string:
+					if prop == want {
 						matchedProperty = true
+					}
+				case []string:
+					for _, val := range prop {
+						if val == want {
+							matchedProperty = true
+						}
 					}
 				}
 			}

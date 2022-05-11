@@ -8,13 +8,13 @@ import (
 type Vertex struct {
 	Id         uint64
 	Label      string
-	Properties interface{}
+	Properties map[string]interface{}
 }
 
 type Edge struct {
 	Id         uint64
 	Label      string
-	Properties interface{}
+	Properties map[string]interface{}
 	From       uint64
 	To         uint64
 }
