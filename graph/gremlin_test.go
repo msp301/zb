@@ -103,3 +103,20 @@ func TestHasLabel(t *testing.T) {
 		t.Fatalf("Expected: %v\nGot: %v\n", want, vertices)
 	}
 }
+
+func TestValues(t *testing.T) {
+	g := New()
+	g.AddVertex(Vertex{Id: 1, Properties: map[string]interface{}{"value": "foo"}})
+	g.AddVertex(Vertex{Id: 2})
+	g.AddVertex(Vertex{Id: 3})
+
+	var values []interface{}
+	for _, value := range Traversal(g).V().Values("value") {
+		values = append(values, value)
+	}
+
+	want := []string{"foo"}
+	if !reflect.DeepEqual(values, want) {
+		t.Fatalf("Expected: %v\nGot: %v\n", want, values)
+	}
+}

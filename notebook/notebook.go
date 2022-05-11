@@ -72,7 +72,7 @@ func (book *Notebook) Read() []parser.Note {
 
 	NOTE:
 		for _, note := range fileNotes {
-			book.Notes.AddVertex(graph.Vertex{Id: note.Id, Label: "note", Properties: note})
+			book.Notes.AddVertex(graph.Vertex{Id: note.Id, Label: "note", Properties: map[string]interface{}{"Value": note}})
 
 			for _, link := range note.Links {
 				book.Notes.AddEdge(note.Id, link)
@@ -80,12 +80,12 @@ func (book *Notebook) Read() []parser.Note {
 
 			for _, tag := range note.Tags {
 				tagId := book.addTag(tag)
-				book.Notes.AddVertex(graph.Vertex{Id: tagId, Label: "tag", Properties: tag})
+				book.Notes.AddVertex(graph.Vertex{Id: tagId, Label: "tag", Properties: map[string]interface{}{"Value": tag}})
 			}
 
 			for _, tag := range note.Tags {
 				if !book.Notes.IsVertex(book.tags[tag]) {
-					book.Notes.AddVertex(graph.Vertex{Id: book.tags[tag], Label: "tag", Properties: tag})
+					book.Notes.AddVertex(graph.Vertex{Id: book.tags[tag], Label: "tag", Properties: map[string]interface{}{"Value": tag}})
 				}
 
 				for _, relatedTag := range note.Tags {
@@ -93,7 +93,7 @@ func (book *Notebook) Read() []parser.Note {
 						continue
 					}
 					if !book.Notes.IsVertex(book.tags[relatedTag]) {
-						book.Notes.AddVertex(graph.Vertex{Id: book.tags[relatedTag], Label: "tag", Properties: tag})
+						book.Notes.AddVertex(graph.Vertex{Id: book.tags[relatedTag], Label: "tag", Properties: map[string]interface{}{"Value": tag}})
 					}
 					book.Notes.AddEdge(book.tags[tag], book.tags[relatedTag])
 				}
@@ -120,8 +120,8 @@ func (book *Notebook) IsNote(noteId uint64) bool {
 func (book *Notebook) Tags() []string {
 	var tags []string
 	traversal := graph.Traversal(book.Notes)
-	for tag := range traversal.V().HasLabel("tag").Iterate() {
-		tags = append(tags, fmt.Sprint(tag.Properties))
+	for _, tag := range traversal.V().HasLabel("tag").Values("Value") {
+		tags = append(tags, fmt.Sprint(tag))
 	}
 	sort.Strings(tags)
 	return tags

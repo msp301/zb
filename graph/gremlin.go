@@ -43,6 +43,17 @@ func (t *TraversalSource) HasLabel(label string) *TraversalSource {
 	return t
 }
 
+func (t *TraversalSource) Values(prop string) []interface{} {
+	var values []interface{}
+	for vertex := range t.Iterate() {
+		property, ok := vertex.Properties[prop]
+		if ok {
+			values = append(values, property)
+		}
+	}
+	return values
+}
+
 func (t *TraversalSource) Next() *Vertex {
 	if t.channel == nil {
 		t.Iterate()

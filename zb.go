@@ -38,7 +38,7 @@ func main() {
 	case "outline":
 		book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
 			indent := strings.Repeat("\t", depth)
-			switch val := vertex.Properties.(type) {
+			switch val := vertex.Properties["Value"].(type) {
 			case parser.Note:
 				fmt.Printf("%s%s - %s\n", indent, val.File, val.Title)
 			}
