@@ -45,6 +45,13 @@ func main() {
 			return true
 		})
 	case "tag":
+		for _, vertex := range book.SearchByTag(os.Args[3]) {
+			jsonStr, err := json.Marshal(vertex)
+			if err != nil {
+				panic("Failed to encode")
+			}
+			fmt.Println(string(jsonStr))
+		}
 		// TODO: Search for notes by tag
 		// Need to implement 'Out()' to take an Edge label and check there is an outgoing Edge for Vertex
 		//traversal := graph.Traversal(book.Notes)

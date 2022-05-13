@@ -10,7 +10,7 @@ func TestNew(t *testing.T) {
 	want := &Graph{
 		Vertices:  map[uint64]Vertex{},
 		Edges:     map[uint64]Edge{},
-		Adjacency: map[uint64][]uint64{},
+		Adjacency: map[uint64]map[uint64]int{},
 	}
 
 	if !reflect.DeepEqual(got, want) {
@@ -27,7 +27,7 @@ func TestAddVertex(t *testing.T) {
 	want := &Graph{
 		Vertices:  map[uint64]Vertex{1: {Id: 1}, 2: {Id: 2}, 3: {Id: 3}},
 		Edges:     map[uint64]Edge{},
-		Adjacency: map[uint64][]uint64{},
+		Adjacency: map[uint64]map[uint64]int{},
 	}
 
 	if !reflect.DeepEqual(got, want) {
@@ -39,20 +39,20 @@ func TestAddEdge(t *testing.T) {
 	got := &Graph{
 		Vertices:  map[uint64]Vertex{1: {Id: 1}, 2: {Id: 2}, 3: {Id: 3}},
 		Edges:     map[uint64]Edge{},
-		Adjacency: map[uint64][]uint64{},
+		Adjacency: map[uint64]map[uint64]int{},
 	}
-	got.AddEdge(1, 2)
+	got.AddEdge(Edge{Id: 1, From: 1, To: 2, Label: "link"})
 
 	want := &Graph{
 		Vertices:  map[uint64]Vertex{1: {Id: 1}, 2: {Id: 2}, 3: {Id: 3}},
 		Edges:     map[uint64]Edge{1: {Id: 1, From: 1, To: 2, Label: "link"}, 2: {Id: 2, From: 2, To: 1, Label: "link"}},
-		Adjacency: map[uint64][]uint64{1: {2}, 2: {1}},
+		Adjacency: map[uint64]map[uint64]int{1: {2: 1}, 2: {1: 1}},
 	}
 
 	t.Logf("Edges: %v", got.Edges)
 
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("Expected: %v\nGot: %v\n", want, got)
+		t.Fatalf("Expected: %+v\nGot: %+v\n", want, got)
 	}
 }
 
@@ -66,7 +66,7 @@ func TestIsEdge(t *testing.T) {
 	graph := &Graph{
 		Vertices:  map[uint64]Vertex{1: {}, 2: {}, 3: {}},
 		Edges:     map[uint64]Edge{},
-		Adjacency: map[uint64][]uint64{1: {2}, 2: {1, 3}, 3: {2}},
+		Adjacency: map[uint64]map[uint64]int{1: {2: 1}, 2: {1: 1, 3: 2}, 3: {2: 1}},
 	}
 
 	tests := []isEdgeTest{
@@ -87,9 +87,9 @@ func TestWalk(t *testing.T) {
 	for i := 1; i <= 5; i++ {
 		graph.AddVertex(Vertex{Id: uint64(i), Label: "vertex"})
 	}
-	graph.AddEdge(1, 2)
-	graph.AddEdge(2, 4)
-	graph.AddEdge(2, 3)
+	graph.AddEdge(Edge{From: 1, To: 2})
+	graph.AddEdge(Edge{From: 2, To: 4})
+	graph.AddEdge(Edge{From: 2, To: 3})
 
 	var got []uint64
 	graph.Walk(func(vertex Vertex, depth int) bool { got = append(got, vertex.Id); return true })

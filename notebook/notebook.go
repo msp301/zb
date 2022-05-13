@@ -75,12 +75,21 @@ func (book *Notebook) Read() []parser.Note {
 			book.Notes.AddVertex(graph.Vertex{Id: note.Id, Label: "note", Properties: map[string]interface{}{"Value": note}})
 
 			for _, link := range note.Links {
-				book.Notes.AddEdge(note.Id, link)
+				book.Notes.AddEdge(graph.Edge{
+					Label: "link",
+					From:  note.Id,
+					To:    link,
+				})
 			}
 
 			for _, tag := range note.Tags {
 				tagId := book.addTag(tag)
 				book.Notes.AddVertex(graph.Vertex{Id: tagId, Label: "tag", Properties: map[string]interface{}{"Value": tag}})
+				book.Notes.AddEdge(graph.Edge{
+					Label: "tag",
+					From:  note.Id,
+					To:    tagId,
+				})
 			}
 
 			for _, tag := range note.Tags {
@@ -95,7 +104,11 @@ func (book *Notebook) Read() []parser.Note {
 					if !book.Notes.IsVertex(book.tags[relatedTag]) {
 						book.Notes.AddVertex(graph.Vertex{Id: book.tags[relatedTag], Label: "tag", Properties: map[string]interface{}{"Value": tag}})
 					}
-					book.Notes.AddEdge(book.tags[tag], book.tags[relatedTag])
+					book.Notes.AddEdge(graph.Edge{
+						Label: "tag",
+						From:  book.tags[tag],
+						To:    book.tags[relatedTag],
+					})
 				}
 			}
 
@@ -115,6 +128,28 @@ func (book *Notebook) Read() []parser.Note {
 func (book *Notebook) IsNote(noteId uint64) bool {
 	_, ok := book.Notes.Vertices[noteId]
 	return ok
+}
+
+func (book *Notebook) SearchByTag(searchTag string) []graph.Vertex {
+	var tagVertex graph.Vertex
+	book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
+		if vertex.Label != "tag" {
+			return true
+		}
+		tag := fmt.Sprint(vertex.Properties["Value"])
+		if tag == searchTag {
+			tagVertex = vertex
+		}
+		return true
+	})
+
+	var results []graph.Vertex
+	for id := range book.Notes.Adjacency[tagVertex.Id] {
+		vertex := book.Notes.Vertices[id]
+		results = append(results, vertex)
+	}
+
+	return results
 }
 
 func (book *Notebook) Tags() []string {

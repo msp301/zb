@@ -124,7 +124,7 @@ func (t *TraversalSource) walk(channel chan Vertex, vertex Vertex, depth int) {
 	channel <- vertex
 	t.visited[vertex.Id] = true
 
-	for _, childId := range t.graph.Adjacency[vertex.Id] {
+	for childId := range t.graph.Adjacency[vertex.Id] {
 		child := t.graph.Vertices[childId]
 		if t.visited[childId] {
 			continue

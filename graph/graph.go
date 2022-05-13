@@ -22,14 +22,14 @@ type Edge struct {
 type Graph struct {
 	Vertices  map[uint64]Vertex
 	Edges     map[uint64]Edge
-	Adjacency map[uint64][]uint64
+	Adjacency map[uint64]map[uint64]int
 }
 
 func New() *Graph {
 	return &Graph{
 		Vertices:  map[uint64]Vertex{},
 		Edges:     map[uint64]Edge{},
-		Adjacency: map[uint64][]uint64{},
+		Adjacency: map[uint64]map[uint64]int{},
 	}
 }
 
@@ -40,33 +40,38 @@ func (g *Graph) AddVertex(vertex Vertex) {
 	g.Vertices[vertex.Id] = vertex
 }
 
-func (g *Graph) AddEdge(v1, v2 uint64) {
-	if !g.IsVertex(v1) {
-		err := fmt.Sprintf("Vertex does not exist: %v", v1)
+func (g *Graph) AddEdge(edge Edge) {
+	if !g.IsVertex(edge.From) {
+		err := fmt.Sprintf("Vertex does not exist: %v", edge.From)
 		panic(err)
 	}
-	if !g.IsVertex(v2) {
-		err := fmt.Sprintf("Vertex does not exist: %v", v2)
+	if !g.IsVertex(edge.To) {
+		err := fmt.Sprintf("Vertex does not exist: %v", edge.To)
 		panic(err)
 	}
-	g.addEdge(v1, v2)
-	g.addEdge(v2, v1)
+	g.addEdge(edge)
+
+	reverse := edge
+	reverse.From = edge.To
+	reverse.To = edge.From
+	g.addEdge(reverse)
 }
 
-func (g *Graph) addEdge(v1, v2 uint64) {
-	g.Adjacency[v1] = append(g.Adjacency[v1], v2)
+func (g *Graph) addEdge(edge Edge) {
+	if _, ok := g.Adjacency[edge.From]; !ok {
+		g.Adjacency[edge.From] = map[uint64]int{}
+	}
+
+	g.Adjacency[edge.From][edge.To] = len(g.Adjacency[edge.From]) + 1
 
 	edgeId := uint64(len(g.Edges) + 1)
-	g.Edges[edgeId] = Edge{Id: edgeId, Label: "link", From: v1, To: v2}
+	edge.Id = edgeId
+	g.Edges[edgeId] = edge
 }
 
 func (g *Graph) IsEdge(v1, v2 uint64) bool {
-	for _, v := range g.Adjacency[v1] {
-		if v == v2 {
-			return true
-		}
-	}
-	return false
+	_, ok := g.Adjacency[v1][v2]
+	return ok
 }
 
 func (g *Graph) IsVertex(id uint64) bool {
@@ -100,7 +105,7 @@ func (g *Graph) walk(vertex Vertex, depth int, visited map[uint64]bool, callback
 
 	visited[vertex.Id] = true
 
-	for _, childId := range g.Adjacency[vertex.Id] {
+	for childId := range g.Adjacency[vertex.Id] {
 		child := g.Vertices[childId]
 		if visited[childId] {
 			continue
