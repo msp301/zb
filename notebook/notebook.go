@@ -130,6 +130,14 @@ func (book *Notebook) IsNote(noteId uint64) bool {
 	return ok
 }
 
+func (book *Notebook) SearchRelated(id uint64) []graph.Vertex {
+	var vertices []graph.Vertex
+	for vertexId := range book.Notes.Adjacency[id] {
+		vertices = append(vertices, book.Notes.Vertices[vertexId])
+	}
+	return vertices
+}
+
 func (book *Notebook) SearchByTag(searchTag string) []graph.Vertex {
 	var tagVertex graph.Vertex
 	book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
