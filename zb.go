@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/msp301/zb/graph"
@@ -44,14 +45,11 @@ func main() {
 			}
 			return true
 		})
+	case "note":
+		id, _ := strconv.ParseUint(os.Args[3], 0, 64)
+		render(book.SearchRelated(id))
 	case "tag":
-		for _, vertex := range book.SearchByTag(os.Args[3]) {
-			jsonStr, err := json.Marshal(vertex)
-			if err != nil {
-				panic("Failed to encode")
-			}
-			fmt.Println(string(jsonStr))
-		}
+		render(book.SearchByTag(os.Args[3]))
 	case "tags":
 		for _, tag := range book.Tags() {
 			fmt.Println(tag)
@@ -77,4 +75,20 @@ func isValidNote(note parser.Note, book *notebook.Notebook) bool {
 	}
 
 	return true
+}
+
+func render(vertices []graph.Vertex) {
+	for _, vertex := range vertices {
+		switch val := vertex.Properties["Value"].(type) {
+		case parser.Note:
+			fmt.Printf("%s - %s\n", val.File, val.Title)
+		case string:
+			fmt.Printf("%s\n", val)
+		}
+		//jsonStr, err := json.Marshal(vertex)
+		//if err != nil {
+		//	panic("Failed to encode")
+		//}
+		//fmt.Println(string(jsonStr))
+	}
 }
