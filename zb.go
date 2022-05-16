@@ -52,15 +52,6 @@ func main() {
 			}
 			fmt.Println(string(jsonStr))
 		}
-		// TODO: Search for notes by tag
-		// Need to implement 'Out()' to take an Edge label and check there is an outgoing Edge for Vertex
-		//traversal := graph.Traversal(book.Notes)
-		//for vertex := range traversal.V().Out("link").Iterate() {
-		//	switch val := vertex.Properties["Value"].(type) {
-		//	case parser.Note:
-		//		fmt.Printf("%s - %s\n", val.File, val.Title)
-		//	}
-		//}
 	case "tags":
 		for _, tag := range book.Tags() {
 			fmt.Println(tag)
