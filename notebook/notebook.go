@@ -160,11 +160,14 @@ func (book *Notebook) SearchByTag(searchTag string) []graph.Vertex {
 	return results
 }
 
-func (book *Notebook) Tags() []string {
+func (book *Notebook) Tags(search string) []string {
 	var tags []string
 	traversal := graph.Traversal(book.Notes)
 	for _, tag := range traversal.V().HasLabel("tag").Values("Value") {
-		tags = append(tags, fmt.Sprint(tag))
+		tagStr := fmt.Sprint(tag)
+		if util.Matches(search, tagStr) {
+			tags = append(tags, tagStr)
+		}
 	}
 	sort.Strings(tags)
 	return tags

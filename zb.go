@@ -51,7 +51,11 @@ func main() {
 	case "tag":
 		render(book.SearchByTag(os.Args[3]))
 	case "tags":
-		for _, tag := range book.Tags() {
+		searchTag := ""
+		if len(os.Args) >= 4 {
+			searchTag = os.Args[3]
+		}
+		for _, tag := range book.Tags(searchTag) {
 			fmt.Println(tag)
 		}
 	default:
