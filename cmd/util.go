@@ -5,11 +5,13 @@ import (
 	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/notebook"
 	"github.com/msp301/zb/parser"
+	"github.com/spf13/viper"
 )
 
 func book() *notebook.Notebook {
-	// TODO: Stop hard-coding notebook directory
-	book := notebook.New("./notes/")
+	// TODO: Add support for reading multiple notebook directories
+	dirs := viper.GetStringSlice("directory")
+	book := notebook.New(dirs[0])
 	book.Read()
 	return book
 }

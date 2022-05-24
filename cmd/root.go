@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/msp301/zb/graph"
-	"os"
-
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"os"
+	"path"
 )
+
+var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "zb",
@@ -32,4 +35,34 @@ func Execute() {
 }
 
 func init() {
+	cobra.OnInitialize(initConfig)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic("Failed to get cwd")
+	}
+	notesDir := path.Join(cwd, "notes")
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.zb.toml)")
+	rootCmd.PersistentFlags().StringSlice("directory", []string{notesDir}, "notebook directories")
+	viper.BindPFlag("directory", rootCmd.PersistentFlags().Lookup("directory"))
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		home, err := os.UserHomeDir()
+		cobra.CheckErr(err)
+
+		viper.AddConfigPath(".")
+		viper.AddConfigPath(home)
+
+		viper.SetConfigType("toml")
+		viper.SetConfigName(".zb")
+	}
+
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
 }
