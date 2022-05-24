@@ -37,14 +37,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic("Failed to get cwd")
-	}
-	notesDir := path.Join(cwd, "notes")
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.zb.toml)")
-	rootCmd.PersistentFlags().StringSlice("directory", []string{notesDir}, "notebook directories")
+	rootCmd.PersistentFlags().StringSlice("directory", []string{defaultNotebookDir()}, "notebook directories")
 	viper.BindPFlag("directory", rootCmd.PersistentFlags().Lookup("directory"))
 }
 
@@ -65,4 +59,16 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+func defaultNotebookDir() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic("Failed to get cwd")
+	}
+	notesDir := path.Join(cwd, "notes")
+	if _, err := os.Stat(notesDir); os.IsNotExist(err) {
+		notesDir = cwd
+	}
+	return notesDir
 }
