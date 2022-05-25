@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -41,7 +42,7 @@ func TestAddEdge(t *testing.T) {
 		Edges:     map[uint64]Edge{},
 		Adjacency: map[uint64]map[uint64]int{},
 	}
-	got.AddEdge(Edge{Id: 1, From: 1, To: 2, Label: "link"})
+	_ = got.AddEdge(Edge{Id: 1, From: 1, To: 2, Label: "link"})
 
 	want := &Graph{
 		Vertices:  map[uint64]Vertex{1: {Id: 1}, 2: {Id: 2}, 3: {Id: 3}},
@@ -53,6 +54,22 @@ func TestAddEdge(t *testing.T) {
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("Expected: %+v\nGot: %+v\n", want, got)
+	}
+}
+
+func TestAddEdge_ErrorsOnNonExistentVertex(t *testing.T) {
+	g := New()
+	g.AddVertex(Vertex{Id: 1})
+	err1 := g.AddEdge(Edge{Id: 101, From: 1, To: 2, Label: "link"})
+	err2 := g.AddEdge(Edge{Id: 102, From: 2, To: 1, Label: "link"})
+
+	want := fmt.Errorf("vertex does not exist: 2")
+
+	if !reflect.DeepEqual(err1, want) {
+		t.Fatalf("Error 1: Got '%v'", err1)
+	}
+	if !reflect.DeepEqual(err2, want) {
+		t.Fatalf("Error 2: Got '%v'", err2)
 	}
 }
 
@@ -87,9 +104,9 @@ func TestWalk(t *testing.T) {
 	for i := 1; i <= 5; i++ {
 		graph.AddVertex(Vertex{Id: uint64(i), Label: "vertex"})
 	}
-	graph.AddEdge(Edge{From: 1, To: 2})
-	graph.AddEdge(Edge{From: 2, To: 4})
-	graph.AddEdge(Edge{From: 2, To: 3})
+	_ = graph.AddEdge(Edge{From: 1, To: 2})
+	_ = graph.AddEdge(Edge{From: 2, To: 4})
+	_ = graph.AddEdge(Edge{From: 2, To: 3})
 
 	var got []uint64
 	graph.Walk(func(vertex Vertex, depth int) bool { got = append(got, vertex.Id); return true })

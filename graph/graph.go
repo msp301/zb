@@ -40,14 +40,12 @@ func (g *Graph) AddVertex(vertex Vertex) {
 	g.Vertices[vertex.Id] = vertex
 }
 
-func (g *Graph) AddEdge(edge Edge) {
+func (g *Graph) AddEdge(edge Edge) error {
 	if !g.IsVertex(edge.From) {
-		err := fmt.Sprintf("Vertex does not exist: %v", edge.From)
-		panic(err)
+		return fmt.Errorf("vertex does not exist: %v", edge.From)
 	}
 	if !g.IsVertex(edge.To) {
-		err := fmt.Sprintf("Vertex does not exist: %v", edge.To)
-		panic(err)
+		return fmt.Errorf("vertex does not exist: %v", edge.To)
 	}
 	g.addEdge(edge)
 
@@ -55,6 +53,8 @@ func (g *Graph) AddEdge(edge Edge) {
 	reverse.From = edge.To
 	reverse.To = edge.From
 	g.addEdge(reverse)
+
+	return nil
 }
 
 func (g *Graph) addEdge(edge Edge) {
