@@ -16,6 +16,7 @@ import (
 
 type Notebook struct {
 	Filters []FilterFunc
+	Invalid map[uint64]parser.Note
 	Notes   *graph.Graph
 	tags    map[string]uint64
 	Path    string
@@ -25,9 +26,10 @@ type FilterFunc func(note parser.Note) bool
 
 func New(path string) *Notebook {
 	return &Notebook{
-		Path:  path,
-		Notes: graph.New(),
-		tags:  map[string]uint64{},
+		Path:    path,
+		Invalid: map[uint64]parser.Note{},
+		Notes:   graph.New(),
+		tags:    map[string]uint64{},
 	}
 }
 
@@ -75,21 +77,27 @@ func (book *Notebook) Read() []parser.Note {
 			book.Notes.AddVertex(graph.Vertex{Id: note.Id, Label: "note", Properties: map[string]interface{}{"Value": note}})
 
 			for _, link := range note.Links {
-				book.Notes.AddEdge(graph.Edge{
+				err := book.Notes.AddEdge(graph.Edge{
 					Label: "link",
 					From:  note.Id,
 					To:    link,
 				})
+				if err != nil {
+					book.Invalid[note.Id] = note
+				}
 			}
 
 			for _, tag := range note.Tags {
 				tagId := book.addTag(tag)
 				book.Notes.AddVertex(graph.Vertex{Id: tagId, Label: "tag", Properties: map[string]interface{}{"Value": tag}})
-				book.Notes.AddEdge(graph.Edge{
+				err := book.Notes.AddEdge(graph.Edge{
 					Label: "tag",
 					From:  note.Id,
 					To:    tagId,
 				})
+				if err != nil {
+					book.Invalid[note.Id] = note
+				}
 			}
 
 			for _, tag := range note.Tags {
@@ -104,11 +112,14 @@ func (book *Notebook) Read() []parser.Note {
 					if !book.Notes.IsVertex(book.tags[relatedTag]) {
 						book.Notes.AddVertex(graph.Vertex{Id: book.tags[relatedTag], Label: "tag", Properties: map[string]interface{}{"Value": tag}})
 					}
-					book.Notes.AddEdge(graph.Edge{
+					err := book.Notes.AddEdge(graph.Edge{
 						Label: "tag",
 						From:  book.tags[tag],
 						To:    book.tags[relatedTag],
 					})
+					if err != nil {
+						book.Invalid[note.Id] = note
+					}
 				}
 			}
 
