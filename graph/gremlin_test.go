@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -110,9 +111,9 @@ func TestValues(t *testing.T) {
 	g.AddVertex(Vertex{Id: 2})
 	g.AddVertex(Vertex{Id: 3})
 
-	var values []interface{}
+	var values []string
 	for _, value := range Traversal(g).V().Values("value") {
-		values = append(values, value)
+		values = append(values, fmt.Sprint(value))
 	}
 
 	want := []string{"foo"}
