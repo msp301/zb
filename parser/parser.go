@@ -86,7 +86,8 @@ func Parse(filepath string) []Note {
 		}
 
 		if strings.Contains(line, `#`) {
-			for _, tag := range util.TagRegex.FindAllString(line, -1) {
+			for _, match := range util.TagRegex.FindAllStringSubmatch(line, -1) {
+				tag := match[1]
 				if tagMap[tag] == 0 && !strings.Contains(line, fmt.Sprintf("\\%s", tag)) {
 					tagMap[tag] = lineNum
 				}
