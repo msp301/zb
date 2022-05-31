@@ -156,7 +156,7 @@ func (book *Notebook) SearchByTag(searchTag string) []graph.Vertex {
 			return true
 		}
 		tag := fmt.Sprint(vertex.Properties["Value"])
-		if tag == searchTag {
+		if util.Matches(tag, searchTag) {
 			tagVertex = vertex
 		}
 		return true
