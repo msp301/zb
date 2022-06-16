@@ -18,7 +18,7 @@ func TestSearchByTag(t *testing.T) {
 	book := &Notebook{Notes: g}
 
 	got := book.SearchByTag("#foo")
-	want := []graph.Vertex{{Id: 2, Label: "note"}}
+	want := []Result{{Value: graph.Vertex{Id: 2, Label: "note"}}}
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("Expected: %+v\nGot: %+v", want, got)

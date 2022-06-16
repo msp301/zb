@@ -37,6 +37,9 @@ func Parse(filepath string) []Note {
 		line := fileScanner.Text()
 
 		if len(strings.TrimSpace(line)) == 0 {
+			if contentStart > 0 {
+				content += fmt.Sprintln(line)
+			}
 			continue
 		}
 

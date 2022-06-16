@@ -149,7 +149,12 @@ func (book *Notebook) SearchRelated(id uint64) []graph.Vertex {
 	return vertices
 }
 
-func (book *Notebook) SearchByTag(searchTag string) []graph.Vertex {
+type Result struct {
+	Context string
+	Value   interface{}
+}
+
+func (book *Notebook) SearchByTag(searchTag string) []Result {
 	var tagVertex graph.Vertex
 	book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
 		if vertex.Label != "tag" {
@@ -162,10 +167,22 @@ func (book *Notebook) SearchByTag(searchTag string) []graph.Vertex {
 		return true
 	})
 
-	var results []graph.Vertex
+	var results []Result
 	for id := range book.Notes.Adjacency[tagVertex.Id] {
 		vertex := book.Notes.Vertices[id]
-		results = append(results, vertex)
+		context := ""
+
+		switch val := vertex.Properties["Value"].(type) {
+		case parser.Note:
+			tag := fmt.Sprint(tagVertex.Properties["Value"])
+			context = util.Context(val.Content, tag)
+		}
+
+		result := Result{
+			Context: context,
+			Value:   vertex,
+		}
+		results = append(results, result)
 	}
 
 	return results

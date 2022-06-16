@@ -9,7 +9,7 @@ func TestParseValidNote(t *testing.T) {
 	got := Parse("examples/valid_note.md")
 	want := []Note{
 		{
-			Content: "This is a test file. #test\nWith a single note :)\n\\#hashtag\nLinks: [[202203311822]], [[202203310800]]",
+			Content: "This is a test file. #test\nWith a single note :)\n\n\\#hashtag\n\nLinks: [[202203311822]], [[202203310800]]",
 			File:    "examples/valid_note.md",
 			Id:      202001241300,
 			Links:   []uint64{202203311822, 202203310800},
@@ -43,7 +43,7 @@ func TestParseDuplicateTags(t *testing.T) {
 	got := Parse("examples/tags.md")
 	want := []Note{
 		{
-			Content: "This is a #test file. #test\nWith #several #tags mentioned\n#several times.\n## Subheading\n#Order is preserved.\nThis is a tag in quotes \"#1-1\"\n#C# is a valid tag.\nTag in a URL: http://example.com/#foo\n\\#ignored",
+			Content: "This is a #test file. #test\nWith #several #tags mentioned\n#several times.\n\n## Subheading\n\n#Order is preserved.\nThis is a tag in quotes \"#1-1\"\n#C# is a valid tag.\nTag in a URL: http://example.com/#foo\n\n\\#ignored",
 			File:    "examples/tags.md",
 			Id:      202204192322,
 			Links:   nil,
@@ -84,7 +84,7 @@ func TestParseMultiNoteFile(t *testing.T) {
 			Title:   "Bad note",
 		},
 		{
-			Content: "stuff --- stuff ---\n    A #link anchor should not be a tag\nhttp://localhost/test#anchor\n[ ] Don't forget #todo this important thing\n[[202002010000]]",
+			Content: "stuff --- stuff ---\n\n    A #link anchor should not be a tag\nhttp://localhost/test#anchor\n\n[ ] Don't forget #todo this important thing\n\n[[202002010000]]",
 			File:    "examples/multi_note.md",
 			Id:      202002020001,
 			Links:   []uint64{202002010000},

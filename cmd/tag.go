@@ -9,7 +9,7 @@ var tagCmd = &cobra.Command{
 	Short: "Find anything directly related to a given tag",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		render(book().SearchByTag(args[0]))
+		renderResults(book().SearchByTag(args[0]))
 	},
 }
 

@@ -26,3 +26,21 @@ func render(vertices []graph.Vertex) {
 		}
 	}
 }
+
+func renderResults(results []notebook.Result) {
+	for _, result := range results {
+		switch val := result.Value.(type) {
+		case graph.Vertex:
+			switch vertex := val.Properties["Value"].(type) {
+			case parser.Note:
+				if len(result.Context) > 0 {
+					fmt.Printf("%s - %s\n", vertex.File, result.Context)
+				} else {
+					fmt.Printf("%s - %s\n", vertex.File, vertex.Title)
+				}
+			}
+		case string:
+			fmt.Printf("%s\n", val)
+		}
+	}
+}
