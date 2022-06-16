@@ -1,17 +1,17 @@
 package util
 
 import (
+	"regexp"
 	"strings"
 )
 
 func Context(s string, phrase string) string {
-	pos := strings.Index(s, phrase)
-	if pos == -1 {
+	input := regexp.QuoteMeta(phrase)
+	contextRegex := regexp.MustCompile(`(?:[\w ]\n?)*` + input + `(?:[\w ]\n?)*`)
+	matches := contextRegex.FindStringSubmatch(s)
+	if len(matches) == 0 {
 		return ""
 	}
 
-	start := pos
-	end := pos + len(phrase) + 10
-
-	return s[start:end]
+	return strings.TrimSpace(matches[0])
 }

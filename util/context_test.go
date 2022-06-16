@@ -13,6 +13,8 @@ func TestContext(t *testing.T) {
 		want   string
 	}{
 		{"This is some example text about nothing or maybe something", "text", "This is some example text about nothing or maybe something"},
+		{"This is some example text about nothing\nor maybe something", "text", "This is some example text about nothing\nor maybe something"},
+		{"This is some example text about nothing\n\nor maybe something", "text", "This is some example text about nothing"},
 	}
 
 	for _, test := range tests {
