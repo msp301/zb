@@ -141,12 +141,25 @@ func (book *Notebook) IsNote(noteId uint64) bool {
 	return ok
 }
 
-func (book *Notebook) SearchRelated(id uint64) []graph.Vertex {
-	var vertices []graph.Vertex
-	for vertexId := range book.Notes.Adjacency[id] {
-		vertices = append(vertices, book.Notes.Vertices[vertexId])
+func (book *Notebook) SearchRelated(id uint64) []Result {
+	var results []Result
+	for adjId := range book.Notes.Adjacency[id] {
+		vertex := book.Notes.Vertices[adjId]
+		context := ""
+
+		switch val := vertex.Properties["Value"].(type) {
+		case parser.Note:
+			context = util.Context(val.Content, fmt.Sprint(id))
+		}
+
+		result := Result{
+			Context: context,
+			Value:   vertex,
+		}
+		results = append(results, result)
 	}
-	return vertices
+
+	return results
 }
 
 type Result struct {

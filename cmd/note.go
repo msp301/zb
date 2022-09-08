@@ -12,7 +12,7 @@ var noteCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		id, _ := strconv.ParseUint(args[0], 0, 64)
-		render(book().SearchRelated(id))
+		renderResults(book().SearchRelated(id))
 	},
 }
 
