@@ -38,9 +38,9 @@ func renderResults(results []notebook.Result) {
 				} else {
 					fmt.Printf("%s - %s\n", vertex.File, vertex.Title)
 				}
+			case string:
+				fmt.Printf("%s\n", vertex)
 			}
-		case string:
-			fmt.Printf("%s\n", val)
 		}
 	}
 }
