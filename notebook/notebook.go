@@ -169,16 +169,13 @@ type Result struct {
 
 func (book *Notebook) SearchByTag(searchTag string) []Result {
 	var tagVertex graph.Vertex
-	book.Notes.Walk(func(vertex graph.Vertex, depth int) bool {
-		if vertex.Label != "tag" {
-			return true
-		}
+	traversal := graph.Traversal(book.Notes)
+	for vertex := range traversal.V().HasLabel("tag").Iterate() {
 		tag := fmt.Sprint(vertex.Properties["Value"])
 		if util.Matches(tag, searchTag) {
 			tagVertex = vertex
 		}
-		return true
-	})
+	}
 
 	var results []Result
 	for id := range book.Notes.Adjacency[tagVertex.Id] {
