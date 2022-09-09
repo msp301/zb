@@ -172,8 +172,9 @@ func (book *Notebook) SearchByTag(searchTag string) []Result {
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("tag").Iterate() {
 		tag := fmt.Sprint(vertex.Properties["Value"])
-		if util.Matches(tag, searchTag) {
+		if util.Matches(searchTag, tag) {
 			tagVertex = vertex
+			break
 		}
 	}
 
