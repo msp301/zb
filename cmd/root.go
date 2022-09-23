@@ -56,9 +56,10 @@ func initConfig() {
 		viper.SetConfigName(".zb")
 	}
 
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	}
+	// TODO: Use a verbose flag to show this output when wanted
+	//if err := viper.ReadInConfig(); err == nil {
+	//	fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	//}
 }
 
 func defaultNotebookDir() string {
