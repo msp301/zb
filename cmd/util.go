@@ -2,17 +2,20 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/msp301/zb/bookshelf"
 	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/notebook"
 	"github.com/msp301/zb/parser"
 	"github.com/spf13/viper"
+	"log"
 )
 
 func book() *notebook.Notebook {
-	// TODO: Add support for reading multiple notebook directories
 	dirs := viper.GetStringSlice("directory")
-	book := notebook.New(dirs[0])
-	book.Read()
+	err, book := bookshelf.Read(dirs)
+	if err != nil {
+		log.Fatalf("Failed to read notebook: %s", err)
+	}
 	return book
 }
 

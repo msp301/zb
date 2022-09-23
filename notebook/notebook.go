@@ -15,21 +15,21 @@ import (
 )
 
 type Notebook struct {
+	files   []string
 	Filters []FilterFunc
 	Invalid map[uint64]parser.Note
 	Notes   *graph.Graph
 	tags    map[string]uint64
-	Path    string
 }
 
 type FilterFunc func(note parser.Note) bool
 
-func New(path string) *Notebook {
+func New() *Notebook {
 	return &Notebook{
-		Path:    path,
 		Invalid: map[uint64]parser.Note{},
 		Notes:   graph.New(),
 		tags:    map[string]uint64{},
+		files:   []string{},
 	}
 }
 
@@ -37,11 +37,8 @@ func (book *Notebook) AddFilter(filter FilterFunc) {
 	book.Filters = append(book.Filters, filter)
 }
 
-func (book *Notebook) Read() []parser.Note {
-	var filteredNotes []parser.Note
-	var noteFiles []string
-
-	err := filepath.WalkDir(book.Path, func(path string, d fs.DirEntry, err error) error {
+func (book *Notebook) Load(dir string) error {
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -61,15 +58,18 @@ func (book *Notebook) Read() []parser.Note {
 		}
 
 		book.Notes.AddVertex(graph.Vertex{Id: fileId})
-		noteFiles = append(noteFiles, path)
+		book.files = append(book.files, path)
 
 		return nil
 	})
-	if err != nil {
-		return nil
-	}
 
-	for _, path := range noteFiles {
+	return err
+}
+
+func (book *Notebook) Read() []parser.Note {
+	var filteredNotes []parser.Note
+
+	for _, path := range book.files {
 		fileNotes := parser.Parse(path)
 
 	NOTE:
