@@ -6,6 +6,7 @@ import (
 	"github.com/msp301/zb/graph"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 	"path"
 )
@@ -56,10 +57,12 @@ func initConfig() {
 		viper.SetConfigName(".zb")
 	}
 
-	// TODO: Use a verbose flag to show this output when wanted
-	//if err := viper.ReadInConfig(); err == nil {
-	//	fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	//}
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Failed to read config file: %s", err)
+	} else {
+		// TODO: Use a verbose flag to show this output when wanted
+		//fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
 }
 
 func defaultNotebookDir() string {
