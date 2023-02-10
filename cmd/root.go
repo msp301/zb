@@ -58,10 +58,12 @@ func initConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Failed to read config file: %s", err)
-	} else {
-		// TODO: Use a verbose flag to show this output when wanted
-		//fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// TODO: Use a verbose flag to show this output when wanted
+			//fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		} else {
+			log.Fatalf("Failed to read config file: %s", err)
+		}
 	}
 }
 
