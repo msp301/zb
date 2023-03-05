@@ -81,23 +81,27 @@ func (g *Graph) IsVertex(id uint64) bool {
 
 type WalkFunc func(vertex Vertex, depth int) bool
 
-func (g *Graph) Walk(callback WalkFunc) {
+func (g *Graph) Walk(callback WalkFunc, maxDepth int) {
 	visited := map[uint64]bool{}
 
 	var sortedVertices []uint64
 	for vertex := range g.Vertices {
 		sortedVertices = append(sortedVertices, vertex)
 	}
-	sort.Slice(sortedVertices, func(a, b int) bool { return sortedVertices[a] < sortedVertices[b] })
+	sort.SliceStable(sortedVertices, func(a, b int) bool { return sortedVertices[a] < sortedVertices[b] })
 
 	for _, id := range sortedVertices {
 		vertex := g.Vertices[id]
-		g.walk(vertex, 0, visited, callback)
+		g.walk(vertex, 0, maxDepth, visited, callback)
 	}
 }
 
-func (g *Graph) walk(vertex Vertex, depth int, visited map[uint64]bool, callback WalkFunc) {
+func (g *Graph) walk(vertex Vertex, depth int, maxDepth int, visited map[uint64]bool, callback WalkFunc) {
 	if visited[vertex.Id] {
+		return
+	}
+
+	if depth > maxDepth && maxDepth != -1 {
 		return
 	}
 
@@ -111,6 +115,6 @@ func (g *Graph) walk(vertex Vertex, depth int, visited map[uint64]bool, callback
 			continue
 		}
 
-		g.walk(child, depth+1, visited, callback)
+		g.walk(child, depth+1, maxDepth, visited, callback)
 	}
 }

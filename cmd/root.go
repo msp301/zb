@@ -24,7 +24,7 @@ var rootCmd = &cobra.Command{
 			}
 			fmt.Println(string(jsonStr))
 			return true
-		})
+		}, -1)
 	},
 }
 

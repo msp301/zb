@@ -109,7 +109,7 @@ func TestWalk(t *testing.T) {
 	_ = graph.AddEdge(Edge{From: 2, To: 3})
 
 	var got []uint64
-	graph.Walk(func(vertex Vertex, depth int) bool { got = append(got, vertex.Id); return true })
+	graph.Walk(func(vertex Vertex, depth int) bool { got = append(got, vertex.Id); return true }, -1)
 
 	want := []uint64{1, 2, 4, 3, 5}
 
