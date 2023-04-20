@@ -2,17 +2,21 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/msp301/zb/bookshelf"
 	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/notebook"
 	"github.com/msp301/zb/parser"
 	"github.com/spf13/viper"
-	"log"
 )
 
+func bookDirs() []string {
+	return viper.GetStringSlice("directory")
+}
+
 func book() *notebook.Notebook {
-	dirs := viper.GetStringSlice("directory")
-	err, book := bookshelf.Read(dirs)
+	err, book := bookshelf.Read(bookDirs())
 	if err != nil {
 		log.Fatalf("Failed to read notebook: %s", err)
 	}
