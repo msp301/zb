@@ -47,9 +47,17 @@ func createNote(dir string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer note.Close()
+	defer func(note *os.File) {
+		err := note.Close()
+		if err != nil {
+			log.Fatalf("Error closing note: %s", err)
+		}
+	}(note)
 
-	note.WriteString(timestamp)
+	_, err = note.WriteString(timestamp)
+	if err != nil {
+		return nil, err
+	}
 
 	return note, nil
 }
