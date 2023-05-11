@@ -199,34 +199,50 @@ func (book *Notebook) SearchByTag(searchTag string) []Result {
 	return results
 }
 
+type matchedTag struct {
+	Distance int
+	Tag      string
+	Vertex   graph.Vertex
+}
+
 func (book *Notebook) SearchByTags(searchTags []string) []Result {
-	tagVertices := make(map[uint64]graph.Vertex)
+	tagVertices := make(map[uint64]matchedTag)
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("tag").Iterate() {
 		tag := fmt.Sprint(vertex.Properties["Value"])
 		for _, searchTag := range searchTags {
 			if util.Matches(searchTag, tag) {
-				tagVertices[vertex.Id] = vertex
+				tagVertices[vertex.Id] = matchedTag{
+					Distance: util.Distance(searchTag, tag),
+					Tag:      tag,
+					Vertex:   vertex,
+				}
 			}
 		}
 	}
 
-	tagVerticesSlice := make([]graph.Vertex, 0, len(tagVertices))
+	tagVerticesSlice := make([]matchedTag, 0, len(tagVertices))
 	for _, vertex := range tagVertices {
 		tagVerticesSlice = append(tagVerticesSlice, vertex)
 	}
 
 	sort.SliceStable(tagVerticesSlice, func(i, j int) bool {
-		return len(book.Notes.Adjacency[tagVerticesSlice[i].Id]) > len(book.Notes.Adjacency[tagVerticesSlice[j].Id])
+		if tagVerticesSlice[i].Distance == tagVerticesSlice[j].Distance {
+			return len(book.Notes.Adjacency[tagVerticesSlice[i].Vertex.Id]) > len(book.Notes.Adjacency[tagVerticesSlice[j].Vertex.Id])
+		} else {
+			return tagVerticesSlice[i].Distance < tagVerticesSlice[j].Distance
+		}
 	})
+
+	tagVerticesSlice = tagVerticesSlice[:len(searchTags)]
 
 	var results []Result
 	var intersection = make(map[uint64]graph.Vertex)
 	var mostConnectedVertex = tagVerticesSlice[0]
 VERTEX:
-	for vertexId := range book.Notes.Adjacency[mostConnectedVertex.Id] {
+	for vertexId := range book.Notes.Adjacency[mostConnectedVertex.Vertex.Id] {
 		for _, tagVertex := range tagVerticesSlice[1:] {
-			if !book.Notes.IsEdge(tagVertex.Id, vertexId) {
+			if !book.Notes.IsEdge(tagVertex.Vertex.Id, vertexId) {
 				continue VERTEX
 			}
 		}
@@ -240,8 +256,8 @@ VERTEX:
 		case parser.Note:
 			matchedTag := ""
 			for _, tagVertex := range tagVerticesSlice {
-				if book.Notes.IsEdge(tagVertex.Id, vertex.Id) {
-					matchedTag = fmt.Sprint(tagVertex.Properties["Value"])
+				if book.Notes.IsEdge(tagVertex.Vertex.Id, vertex.Id) {
+					matchedTag = fmt.Sprint(tagVertex.Vertex.Properties["Value"])
 					break
 				}
 			}

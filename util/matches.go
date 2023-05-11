@@ -22,10 +22,13 @@ func Matches(str1 string, str2 string) bool {
 	if fuzzy.MatchFold(str1, str2) {
 		return true
 	} else {
-		distance := fuzzy.LevenshteinDistance(strings.ToLower(str1), strings.ToLower(str2))
-		if distance <= len(str2)/3 {
+		if Distance(str1, str2) <= len(str2)/3 {
 			return true
 		}
 	}
 	return false
+}
+
+func Distance(str1 string, str2 string) int {
+	return fuzzy.LevenshteinDistance(strings.ToLower(str1), strings.ToLower(str2))
 }
