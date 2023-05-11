@@ -199,6 +199,65 @@ func (book *Notebook) SearchByTag(searchTag string) []Result {
 	return results
 }
 
+func (book *Notebook) SearchByTags(searchTags []string) []Result {
+	tagVertices := make(map[uint64]graph.Vertex)
+	traversal := graph.Traversal(book.Notes)
+	for vertex := range traversal.V().HasLabel("tag").Iterate() {
+		tag := fmt.Sprint(vertex.Properties["Value"])
+		for _, searchTag := range searchTags {
+			if util.Matches(searchTag, tag) {
+				tagVertices[vertex.Id] = vertex
+			}
+		}
+	}
+
+	tagVerticesSlice := make([]graph.Vertex, 0, len(tagVertices))
+	for _, vertex := range tagVertices {
+		tagVerticesSlice = append(tagVerticesSlice, vertex)
+	}
+
+	sort.SliceStable(tagVerticesSlice, func(i, j int) bool {
+		return len(book.Notes.Adjacency[tagVerticesSlice[i].Id]) > len(book.Notes.Adjacency[tagVerticesSlice[j].Id])
+	})
+
+	var results []Result
+	var intersection = make(map[uint64]graph.Vertex)
+	var mostConnectedVertex = tagVerticesSlice[0]
+VERTEX:
+	for vertexId := range book.Notes.Adjacency[mostConnectedVertex.Id] {
+		for _, tagVertex := range tagVerticesSlice[1:] {
+			if !book.Notes.IsEdge(tagVertex.Id, vertexId) {
+				continue VERTEX
+			}
+		}
+		intersection[vertexId] = book.Notes.Vertices[vertexId]
+	}
+
+	for _, vertex := range intersection {
+		context := ""
+
+		switch val := vertex.Properties["Value"].(type) {
+		case parser.Note:
+			matchedTag := ""
+			for _, tagVertex := range tagVerticesSlice {
+				if book.Notes.IsEdge(tagVertex.Id, vertex.Id) {
+					matchedTag = fmt.Sprint(tagVertex.Properties["Value"])
+					break
+				}
+			}
+			context = util.Context(val.Content, matchedTag)
+		}
+
+		result := Result{
+			Context: context,
+			Value:   vertex,
+		}
+		results = append(results, result)
+	}
+
+	return results
+}
+
 func (book *Notebook) Tags(search string) []string {
 	var tags []string
 	traversal := graph.Traversal(book.Notes)
