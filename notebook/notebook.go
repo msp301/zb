@@ -167,45 +167,13 @@ type Result struct {
 	Value   interface{}
 }
 
-func (book *Notebook) SearchByTag(searchTag string) []Result {
-	var tagVertex graph.Vertex
-	traversal := graph.Traversal(book.Notes)
-	for vertex := range traversal.V().HasLabel("tag").Iterate() {
-		tag := fmt.Sprint(vertex.Properties["Value"])
-		if util.Matches(searchTag, tag) {
-			tagVertex = vertex
-			break
-		}
-	}
-
-	var results []Result
-	for id := range book.Notes.Adjacency[tagVertex.Id] {
-		vertex := book.Notes.Vertices[id]
-		context := ""
-
-		switch val := vertex.Properties["Value"].(type) {
-		case parser.Note:
-			tag := fmt.Sprint(tagVertex.Properties["Value"])
-			context = util.Context(val.Content, tag)
-		}
-
-		result := Result{
-			Context: context,
-			Value:   vertex,
-		}
-		results = append(results, result)
-	}
-
-	return results
-}
-
 type matchedTag struct {
 	Distance int
 	Tag      string
 	Vertex   graph.Vertex
 }
 
-func (book *Notebook) SearchByTags(searchTags []string) []Result {
+func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 	tagVertices := make(map[uint64]matchedTag)
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("tag").Iterate() {

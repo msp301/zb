@@ -17,7 +17,7 @@ func TestSearchByTag(t *testing.T) {
 	g.AddEdge(graph.Edge{Id: 101, Label: "tag", From: 1, To: 5})
 	book := &Notebook{Notes: g}
 
-	got := book.SearchByTag("#foo")
+	got := book.SearchByTags("#foo")
 	want := []Result{{Value: graph.Vertex{Id: 2, Label: "note"}}}
 
 	if !reflect.DeepEqual(got, want) {
