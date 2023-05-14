@@ -189,6 +189,10 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 		}
 	}
 
+	if len(tagVertices) == 0 {
+		return nil
+	}
+
 	tagVerticesSlice := make([]matchedTag, 0, len(tagVertices))
 	for _, vertex := range tagVertices {
 		tagVerticesSlice = append(tagVerticesSlice, vertex)
