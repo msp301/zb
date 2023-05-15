@@ -15,6 +15,14 @@ func TestContext(t *testing.T) {
 		{"This is some example text about nothing or maybe something", "text", "This is some example text about nothing or maybe something"},
 		{"This is some example text about nothing\nor maybe something", "text", "This is some example text about nothing\nor maybe something"},
 		{"This is some example text about nothing\n\nor maybe something", "text", "This is some example text about nothing"},
+
+		{"1. This is an example list about nothing\nor maybe something", "list", "This is an example list about nothing"},
+		{"1) This is an example list about nothing\nor maybe something", "list", "This is an example list about nothing"},
+		{"+ This is an example list about nothing\nor maybe something", "list", "This is an example list about nothing"},
+		{"- This is an example list about nothing\nor maybe something", "list", "This is an example list about nothing"},
+		{"* This is an example list about nothing\nor maybe something", "list", "This is an example list about nothing"},
+		{"   * This is an example list about nothing\nor maybe something", "list", "This is an example list about nothing"},
+		{" * This is an example\n* list about nothing\nor maybe something", "list", "list about nothing"},
 	}
 
 	for _, test := range tests {
