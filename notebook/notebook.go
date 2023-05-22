@@ -246,6 +246,19 @@ VERTEX:
 	return results
 }
 
+func (book *Notebook) Count() int {
+	var noteCount int
+	traversal := graph.Traversal(book.Notes)
+	for range traversal.V().HasLabel("note").Iterate() {
+		noteCount++
+	}
+	return noteCount
+}
+
+func (book *Notebook) LinkCount() int {
+	return len(book.Notes.Edges) / 2
+}
+
 func (book *Notebook) Tags(search string) []string {
 	var tags []string
 	traversal := graph.Traversal(book.Notes)
