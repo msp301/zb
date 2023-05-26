@@ -271,12 +271,9 @@ func (book *Notebook) LinkCount() int {
 
 func (book *Notebook) Tags(search string) []string {
 	var tags []string
-	traversal := graph.Traversal(book.Notes)
-	for _, tag := range traversal.V().HasLabel("tag").Values("Value") {
-		tagStr := fmt.Sprint(tag)
-		if util.Matches(search, tagStr) {
-			tags = append(tags, tagStr)
-		}
+	tagConnections := book.tagConnections(search)
+	for _, tagConnection := range tagConnections {
+		tags = append(tags, tagConnection.Tag)
 	}
 	sort.Strings(tags)
 	return tags
@@ -287,14 +284,21 @@ type TagConnection struct {
 	Connections int
 }
 
-func (book *Notebook) TagConnections() []TagConnection {
+func (book *Notebook) tagConnections(search string) []TagConnection {
 	var tagConnections []TagConnection
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("tag").Iterate() {
 		tag := fmt.Sprint(vertex.Properties["Value"])
-		tagConnection := TagConnection{Tag: tag, Connections: len(book.Notes.Adjacency[vertex.Id])}
-		tagConnections = append(tagConnections, tagConnection)
+		if util.Matches(search, tag) {
+			tagConnection := TagConnection{Tag: tag, Connections: len(book.Notes.Adjacency[vertex.Id])}
+			tagConnections = append(tagConnections, tagConnection)
+		}
 	}
+	return tagConnections
+}
+
+func (book *Notebook) TagConnections(search string) []TagConnection {
+	tagConnections := book.tagConnections(search)
 	sort.SliceStable(tagConnections, func(i, j int) bool {
 		return tagConnections[i].Connections > tagConnections[j].Connections
 	})

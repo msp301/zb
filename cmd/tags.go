@@ -16,7 +16,7 @@ var tagsCmd = &cobra.Command{
 		}
 
 		if connections, err := cmd.Flags().GetBool("connections"); err == nil && connections {
-			for _, tagConnection := range book().TagConnections() {
+			for _, tagConnection := range book().TagConnections(searchTag) {
 				fmt.Printf("%d %s\n", tagConnection.Connections, tagConnection.Tag)
 			}
 			return
