@@ -22,9 +22,10 @@ func Context(s string, phrase string) ([]string, bool) {
 				if strings.Contains(line, phrase) {
 					mdListRegex := regexp.MustCompile(`^(\s*)(?:\*|\+|-|\d+[.)])\s+([^\n]+)`)
 					context := mdListRegex.FindStringSubmatch(line)
-					match = context[2]
+					contexts = append(contexts, context[2])
 				}
 			}
+			continue
 		}
 		contexts = append(contexts, match)
 	}
