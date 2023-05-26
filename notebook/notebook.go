@@ -145,18 +145,23 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 	var results []Result
 	for adjId := range book.Notes.Adjacency[id] {
 		vertex := book.Notes.Vertices[adjId]
-		context := ""
+		contexts := []string{""}
 
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
-			context = util.Context(val.Content, fmt.Sprint(id))
+			matched, ok := util.Context(val.Content, fmt.Sprint(id))
+			if ok {
+				contexts = matched
+			}
 		}
 
-		result := Result{
-			Context: context,
-			Value:   vertex,
+		for _, context := range contexts {
+			result := Result{
+				Context: context,
+				Value:   vertex,
+			}
+			results = append(results, result)
 		}
-		results = append(results, result)
 	}
 
 	return results
@@ -222,7 +227,7 @@ VERTEX:
 	}
 
 	for _, vertex := range intersection {
-		context := ""
+		context := []string{""}
 
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
@@ -233,14 +238,19 @@ VERTEX:
 					break
 				}
 			}
-			context = util.Context(val.Content, matchedTag)
+			matched, ok := util.Context(val.Content, matchedTag)
+			if ok {
+				context = matched
+			}
 		}
 
-		result := Result{
-			Context: context,
-			Value:   vertex,
+		for _, context := range context {
+			result := Result{
+				Context: context,
+				Value:   vertex,
+			}
+			results = append(results, result)
 		}
-		results = append(results, result)
 	}
 
 	return results
