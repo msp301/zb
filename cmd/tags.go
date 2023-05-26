@@ -15,6 +15,13 @@ var tagsCmd = &cobra.Command{
 			searchTag = args[0]
 		}
 
+		if connections, err := cmd.Flags().GetBool("connections"); err == nil && connections {
+			for _, tagConnection := range book().TagConnections() {
+				fmt.Printf("%d %s\n", tagConnection.Connections, tagConnection.Tag)
+			}
+			return
+		}
+
 		for _, tag := range book().Tags(searchTag) {
 			fmt.Println(tag)
 		}
@@ -23,4 +30,6 @@ var tagsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(tagsCmd)
+
+	tagsCmd.Flags().BoolP("connections", "c", false, "Include number of connections to tags")
 }

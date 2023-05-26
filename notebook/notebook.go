@@ -282,6 +282,25 @@ func (book *Notebook) Tags(search string) []string {
 	return tags
 }
 
+type TagConnection struct {
+	Tag         string
+	Connections int
+}
+
+func (book *Notebook) TagConnections() []TagConnection {
+	var tagConnections []TagConnection
+	traversal := graph.Traversal(book.Notes)
+	for vertex := range traversal.V().HasLabel("tag").Iterate() {
+		tag := fmt.Sprint(vertex.Properties["Value"])
+		tagConnection := TagConnection{Tag: tag, Connections: len(book.Notes.Adjacency[vertex.Id])}
+		tagConnections = append(tagConnections, tagConnection)
+	}
+	sort.SliceStable(tagConnections, func(i, j int) bool {
+		return tagConnections[i].Connections > tagConnections[j].Connections
+	})
+	return tagConnections
+}
+
 func (book *Notebook) addTag(tag string) uint64 {
 	tagId, ok := book.tags[tag]
 	if !ok {
