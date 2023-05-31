@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func (book *Notebook) Search(query string) []Result {
+func (book *Notebook) Search(query ...string) []Result {
 	results := []Result{}
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("note").Iterate() {
@@ -17,12 +17,22 @@ func (book *Notebook) Search(query string) []Result {
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
 			paragraphs := extractParagraphs(val.Content)
+		PARAGRAPH:
 			for _, paragraph := range paragraphs {
-				if matches(paragraph, query) {
-					context = append(context, paragraph)
-					matched = true
-					break
+				termsMatched := 0
+				for _, term := range query {
+					if matches(paragraph, term) {
+						termsMatched++
+					}
 				}
+
+				if termsMatched != len(query) {
+					continue PARAGRAPH
+				}
+
+				context = append(context, paragraph)
+				matched = true
+				break
 			}
 
 			if !matched {
