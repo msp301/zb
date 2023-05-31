@@ -7,7 +7,7 @@ import (
 
 func Context(s string, phrase string) ([]string, bool) {
 	input := regexp.QuoteMeta(phrase)
-	contextRegex := regexp.MustCompile(`(?:[^\n]\n?)*` + input + `(?:[^\n]\n?)*`)
+	contextRegex := regexp.MustCompile(`(?i)(?:[^\n]\n?)*` + input + `(?:[^\n]\n?)*`)
 	matches := contextRegex.FindAllStringSubmatch(s, -1)
 	if matches == nil {
 		return nil, false
