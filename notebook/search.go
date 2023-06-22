@@ -4,6 +4,7 @@ import (
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/parser"
+	"github.com/msp301/zb/util"
 	"regexp"
 	"strings"
 )
@@ -30,8 +31,14 @@ func (book *Notebook) Search(query ...string) []Result {
 					continue PARAGRAPH
 				}
 
-				context = append(context, paragraph)
-				matched = true
+				for _, term := range query {
+					extracted, ok := util.Context(paragraph, term)
+					if ok {
+						context = append(context, extracted...)
+						matched = true
+						break
+					}
+				}
 				break
 			}
 
