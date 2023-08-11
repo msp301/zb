@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,10 +15,21 @@ import (
 var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new note",
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		dirs := bookDirs()
+		bookDir := dirs[0]
 
-		notePath := filepath.Join(dirs[0], strconv.Itoa(time.Now().Year()))
+		if len(args) > 0 {
+			bookAlias := args[0]
+
+			aliasIndex := aliasIndex(bookAlias)
+			if aliasIndex != -1 {
+				bookDir = dirs[aliasIndex]
+			}
+		}
+
+		notePath := filepath.Join(bookDir, strconv.Itoa(time.Now().Year()))
 		if err := os.MkdirAll(notePath, 0755); err != nil {
 			log.Fatalf("Error creating directory: %s", err)
 		}
@@ -37,6 +49,9 @@ var newCmd = &cobra.Command{
 }
 
 func init() {
+	newCmd.PersistentFlags().StringSlice("alias", []string{}, "aliases for notebook directories")
+	viper.BindPFlag("alias", newCmd.PersistentFlags().Lookup("alias"))
+
 	rootCmd.AddCommand(newCmd)
 }
 
@@ -60,4 +75,13 @@ func createNote(dir string) (*os.File, error) {
 	}
 
 	return note, nil
+}
+
+func aliasIndex(alias string) int {
+	for i, a := range viper.GetStringSlice("alias") {
+		if a == alias {
+			return i
+		}
+	}
+	return -1
 }
