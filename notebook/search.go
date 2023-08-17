@@ -17,7 +17,8 @@ func (book *Notebook) Search(query ...string) []Result {
 		matched := false
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
-			paragraphs := extractParagraphs(val.Content)
+			content := val.Title + "\n\n" + val.Content
+			paragraphs := extractParagraphs(content)
 		PARAGRAPH:
 			for _, paragraph := range paragraphs {
 				termsMatched := 0
