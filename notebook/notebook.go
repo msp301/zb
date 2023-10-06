@@ -179,41 +179,7 @@ type matchedTag struct {
 }
 
 func (book *Notebook) SearchByTags(searchTags ...string) []Result {
-	tagVertices := make(map[uint64]matchedTag)
-	traversal := graph.Traversal(book.Notes)
-	for vertex := range traversal.V().HasLabel("tag").Iterate() {
-		tag := fmt.Sprint(vertex.Properties["Value"])
-		for _, searchTag := range searchTags {
-			if util.Matches(searchTag, tag) {
-				tagVertices[vertex.Id] = matchedTag{
-					Distance: util.Distance(searchTag, tag),
-					Tag:      tag,
-					Vertex:   vertex,
-				}
-			}
-		}
-	}
-
-	if len(tagVertices) == 0 {
-		return nil
-	}
-
-	tagVerticesSlice := make([]matchedTag, 0, len(tagVertices))
-	for _, vertex := range tagVertices {
-		tagVerticesSlice = append(tagVerticesSlice, vertex)
-	}
-
-	sort.SliceStable(tagVerticesSlice, func(i, j int) bool {
-		if tagVerticesSlice[i].Distance == tagVerticesSlice[j].Distance {
-			return len(book.Notes.Adjacency[tagVerticesSlice[i].Vertex.Id]) > len(book.Notes.Adjacency[tagVerticesSlice[j].Vertex.Id])
-		} else {
-			return tagVerticesSlice[i].Distance < tagVerticesSlice[j].Distance
-		}
-	})
-
-	if len(tagVerticesSlice) > len(searchTags) {
-		tagVerticesSlice = tagVerticesSlice[:len(searchTags)]
-	}
+    tagVerticesSlice := book.MatchedTags(searchTags...)
 
 	var results []Result
 	var intersection = make(map[uint64]graph.Vertex)
@@ -305,6 +271,46 @@ func (book *Notebook) TagConnections(search string) []TagConnection {
 		return tagConnections[i].Connections > tagConnections[j].Connections
 	})
 	return tagConnections
+}
+
+func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
+	tagVertices := make(map[uint64]matchedTag)
+	traversal := graph.Traversal(book.Notes)
+	for vertex := range traversal.V().HasLabel("tag").Iterate() {
+		tag := fmt.Sprint(vertex.Properties["Value"])
+		for _, searchTag := range searchTags {
+			if util.Matches(searchTag, tag) {
+				tagVertices[vertex.Id] = matchedTag{
+					Distance: util.Distance(searchTag, tag),
+					Tag:      tag,
+					Vertex:   vertex,
+				}
+			}
+		}
+	}
+
+	if len(tagVertices) == 0 {
+		return nil
+	}
+
+	tagVerticesSlice := make([]matchedTag, 0, len(tagVertices))
+	for _, vertex := range tagVertices {
+		tagVerticesSlice = append(tagVerticesSlice, vertex)
+	}
+
+	sort.SliceStable(tagVerticesSlice, func(i, j int) bool {
+		if tagVerticesSlice[i].Distance == tagVerticesSlice[j].Distance {
+			return len(book.Notes.Adjacency[tagVerticesSlice[i].Vertex.Id]) > len(book.Notes.Adjacency[tagVerticesSlice[j].Vertex.Id])
+		} else {
+			return tagVerticesSlice[i].Distance < tagVerticesSlice[j].Distance
+		}
+	})
+
+	if len(tagVerticesSlice) > len(searchTags) {
+		tagVerticesSlice = tagVerticesSlice[:len(searchTags)]
+	}
+
+    return tagVerticesSlice
 }
 
 func (book *Notebook) addTag(tag string) uint64 {
