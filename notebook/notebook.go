@@ -179,21 +179,10 @@ type matchedTag struct {
 }
 
 func (book *Notebook) SearchByTags(searchTags ...string) []Result {
-    tagVerticesSlice := book.MatchedTags(searchTags...)
-
 	var results []Result
-	var intersection = make(map[uint64]graph.Vertex)
-	var mostConnectedVertex = tagVerticesSlice[0]
-VERTEX:
-	for vertexId := range book.Notes.Adjacency[mostConnectedVertex.Vertex.Id] {
-		for _, tagVertex := range tagVerticesSlice[1:] {
-			if !book.Notes.IsEdge(tagVertex.Vertex.Id, vertexId) {
-				continue VERTEX
-			}
-		}
-		intersection[vertexId] = book.Notes.Vertices[vertexId]
-	}
 
+    tagVerticesSlice := book.MatchedTags(searchTags...)
+    intersection := book.TagIntersection(tagVerticesSlice)
 	for _, vertex := range intersection {
 		context := []string{""}
 
@@ -311,6 +300,22 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 	}
 
     return tagVerticesSlice
+}
+
+func (book *Notebook) TagIntersection(matchedTags []matchedTag) map[uint64]graph.Vertex {
+	var intersection = make(map[uint64]graph.Vertex)
+	var mostConnectedVertex = matchedTags[0]
+VERTEX:
+	for vertexId := range book.Notes.Adjacency[mostConnectedVertex.Vertex.Id] {
+		for _, tagVertex := range matchedTags[1:] {
+			if !book.Notes.IsEdge(tagVertex.Vertex.Id, vertexId) {
+				continue VERTEX
+			}
+		}
+		intersection[vertexId] = book.Notes.Vertices[vertexId]
+	}
+
+    return intersection
 }
 
 func (book *Notebook) addTag(tag string) uint64 {
