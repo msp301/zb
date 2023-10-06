@@ -302,7 +302,7 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
     return tagVerticesSlice
 }
 
-func (book *Notebook) TagIntersection(matchedTags []matchedTag) map[uint64]graph.Vertex {
+func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
 	var intersection = make(map[uint64]graph.Vertex)
 	var mostConnectedVertex = matchedTags[0]
 VERTEX:
@@ -315,7 +315,20 @@ VERTEX:
 		intersection[vertexId] = book.Notes.Vertices[vertexId]
 	}
 
-    return intersection
+    var sortedVertices []uint64
+    for vertexId := range intersection {
+        sortedVertices = append(sortedVertices, vertexId)
+    }
+    sort.SliceStable(sortedVertices, func(i, j int) bool {
+        return sortedVertices[i] < sortedVertices[j]
+    })
+
+    var sortedIntersection []graph.Vertex
+    for _, vertexId := range sortedVertices {
+        sortedIntersection = append(sortedIntersection, intersection[vertexId])
+    }
+
+    return sortedIntersection
 }
 
 func (book *Notebook) addTag(tag string) uint64 {
