@@ -72,9 +72,12 @@ func (t *TraversalSource) Iterate() <-chan Vertex {
 
 	go func() {
 		if t.position == nil {
-			vertex, ok := t.graph.Vertices[t.sortedVertices()[0]]
-			if ok {
-				t.position = &vertex
+			sorted := t.sortedVertices()
+			if len(sorted) > 0 {
+				vertex, ok := t.graph.Vertices[sorted[0]]
+				if ok {
+					t.position = &vertex
+				}
 			}
 		}
 
