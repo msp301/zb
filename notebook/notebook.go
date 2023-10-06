@@ -211,7 +211,9 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 		}
 	})
 
-	tagVerticesSlice = tagVerticesSlice[:len(searchTags)]
+	if len(tagVerticesSlice) > len(searchTags) {
+		tagVerticesSlice = tagVerticesSlice[:len(searchTags)]
+	}
 
 	var results []Result
 	var intersection = make(map[uint64]graph.Vertex)
