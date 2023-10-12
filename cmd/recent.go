@@ -12,10 +12,10 @@ var recentCmd = &cobra.Command{
 	Use:   "recent",
 	Short: "Output notes recently worked on",
 	Run: func(cmd *cobra.Command, args []string) {
-		maxResults := viper.GetInt("recentNumber")
+		maxResults := viper.GetInt("number")
 		results := 0
 		book().Notes.WalkBackwards(func(vertex graph.Vertex, _ int) bool {
-			if results > maxResults {
+			if results >= maxResults {
 				return false
 			}
 			switch val := vertex.Properties["Value"].(type) {
@@ -29,7 +29,7 @@ var recentCmd = &cobra.Command{
 }
 
 func init() {
-	recentCmd.PersistentFlags().Int("recentNumber", 10, "Number of results to return")
-	viper.BindPFlag("recentNumber", recentCmd.PersistentFlags().Lookup("recentNumber"))
+	recentCmd.PersistentFlags().IntP("number", "n", 10, "Number of results to return")
+	viper.BindPFlag("number", recentCmd.PersistentFlags().Lookup("number"))
 	rootCmd.AddCommand(recentCmd)
 }
