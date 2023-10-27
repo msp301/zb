@@ -304,6 +304,11 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 
 func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
 	var intersection = make(map[uint64]graph.Vertex)
+
+	if len(matchedTags) == 0 {
+		return nil
+	}
+
 	var mostConnectedVertex = matchedTags[0]
 VERTEX:
 	for vertexId := range book.Notes.Adjacency[mostConnectedVertex.Vertex.Id] {
