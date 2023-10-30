@@ -20,7 +20,7 @@ func Context(s string, phrase string) ([]string, bool) {
 		if isMarkdownList(match) {
 			for _, line := range strings.Split(match, "\n") {
 				if strings.Contains(line, phrase) {
-					mdListRegex := regexp.MustCompile(`^(\s*)(?:\*|\+|-|\d+[.)])\s+([^\n]+)`)
+					mdListRegex := regexp.MustCompile(`^(\s*)(?:(?:\*|\+|-|\d+[.)])\s+)?([^\n]+)`)
 					context := mdListRegex.FindStringSubmatch(line)
 					contexts = append(contexts, context[2])
 				}

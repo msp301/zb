@@ -25,6 +25,8 @@ func TestContext(t *testing.T) {
 		{"   * This is an example list about nothing\nor maybe something", "list", []string{"This is an example list about nothing"}},
 		{" * This is an example\n* list about nothing\nor maybe something", "list", []string{"list about nothing"}},
 
+		{" * This is an example\n* list about nothing\nNot a list", "list", []string{"list about nothing", "Not a list"}},
+
 		{" * This is a list entry\n* list about nothing\nor maybe something", "list", []string{"This is a list entry", "list about nothing"}},
 		{"Example 1\n\nanother example\n\nand another", "another", []string{"another example", "and another"}},
 	}
