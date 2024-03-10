@@ -10,7 +10,7 @@ With #several #tags mentioned
 
 #Order is preserved.
 This is a tag in quotes "#1-1"
-#C# is a valid tag.
+#C# and #C++ are valid tags.
 Tag in a URL: http://example.com/#foo
 
 \#ignored
