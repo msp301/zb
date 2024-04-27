@@ -11,7 +11,7 @@ func (book *Notebook) Search(query ...string) []Result {
 	results := []Result{}
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("note").Iterate() {
-		var context []string
+		var context []util.ContextMatch
 		matched := false
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
@@ -48,7 +48,8 @@ func (book *Notebook) Search(query ...string) []Result {
 
 		for _, context := range context {
 			result := Result{
-				Context: context,
+				Context: context.Text,
+				Line:    context.Line,
 				Value:   vertex,
 			}
 			results = append(results, result)

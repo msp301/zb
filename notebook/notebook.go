@@ -145,7 +145,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 	var results []Result
 	for adjId := range book.Notes.Adjacency[id] {
 		vertex := book.Notes.Vertices[adjId]
-		contexts := []string{""}
+		contexts := []util.ContextMatch{{Text: "", Line: 0}}
 
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
@@ -157,7 +157,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 
 		for _, context := range contexts {
 			result := Result{
-				Context: context,
+				Context: context.Text,
 				Value:   vertex,
 			}
 			results = append(results, result)
@@ -169,6 +169,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 
 type Result struct {
 	Context string
+	Line    int
 	Value   interface{}
 }
 
@@ -181,10 +182,10 @@ type matchedTag struct {
 func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 	var results []Result
 
-    tagVerticesSlice := book.MatchedTags(searchTags...)
-    intersection := book.TagIntersection(tagVerticesSlice)
+	tagVerticesSlice := book.MatchedTags(searchTags...)
+	intersection := book.TagIntersection(tagVerticesSlice)
 	for _, vertex := range intersection {
-		context := []string{""}
+		context := []util.ContextMatch{{Text: "", Line: 0}}
 
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
@@ -203,7 +204,8 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 
 		for _, context := range context {
 			result := Result{
-				Context: context,
+				Context: context.Text,
+				Line:    context.Line,
 				Value:   vertex,
 			}
 			results = append(results, result)
@@ -299,7 +301,7 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 		tagVerticesSlice = tagVerticesSlice[:len(searchTags)]
 	}
 
-    return tagVerticesSlice
+	return tagVerticesSlice
 }
 
 func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
@@ -320,20 +322,20 @@ VERTEX:
 		intersection[vertexId] = book.Notes.Vertices[vertexId]
 	}
 
-    var sortedVertices []uint64
-    for vertexId := range intersection {
-        sortedVertices = append(sortedVertices, vertexId)
-    }
-    sort.SliceStable(sortedVertices, func(i, j int) bool {
-        return sortedVertices[i] < sortedVertices[j]
-    })
+	var sortedVertices []uint64
+	for vertexId := range intersection {
+		sortedVertices = append(sortedVertices, vertexId)
+	}
+	sort.SliceStable(sortedVertices, func(i, j int) bool {
+		return sortedVertices[i] < sortedVertices[j]
+	})
 
-    var sortedIntersection []graph.Vertex
-    for _, vertexId := range sortedVertices {
-        sortedIntersection = append(sortedIntersection, intersection[vertexId])
-    }
+	var sortedIntersection []graph.Vertex
+	for _, vertexId := range sortedVertices {
+		sortedIntersection = append(sortedIntersection, intersection[vertexId])
+	}
 
-    return sortedIntersection
+	return sortedIntersection
 }
 
 func (book *Notebook) addTag(tag string) uint64 {
