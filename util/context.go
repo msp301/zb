@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+type ContextMatch struct {
+	Text string
+	Line int
+}
+
 var mdListRegex = regexp.MustCompile(`^(\s*)(?:\*|\+|-|\d+[.)])\s+`)
 
 var mdListEntryRegex = regexp.MustCompile(`^(\s*)(?:(?:\*|\+|-|\d+[.)])\s+)?([^\n]+)`)
@@ -14,22 +19,25 @@ var contextRegexCache = make(map[string]*regexp.Regexp)
 
 type ContextMatchFunc func(s string, phrase string) bool
 
-func context(s string, phrase string, matchFunc ContextMatchFunc) ([]string, bool) {
+func context(s string, phrase string, matchFunc ContextMatchFunc) ([]ContextMatch, bool) {
 	contextRegex := contextRegex(phrase)
 	matches := contextRegex.FindAllStringSubmatch(s, -1)
 	if matches == nil {
 		return nil, false
 	}
 
-	contexts := make([]string, 0)
+	contexts := make([]ContextMatch, 0)
 
 	for _, match := range matches {
 		match := strings.TrimSpace(match[0])
+
+		lineNumber := strings.Count(s[:strings.Index(s, match)], "\n") + 1
+
 		if isMarkdownList(match) {
 			for _, line := range strings.Split(match, "\n") {
 				if matchFunc(line, phrase) {
 					context := mdListEntryRegex.FindStringSubmatch(line)
-					contexts = append(contexts, context[2])
+					contexts = append(contexts, ContextMatch{Text: context[2], Line: lineNumber})
 				}
 			}
 			continue
@@ -40,7 +48,7 @@ func context(s string, phrase string, matchFunc ContextMatchFunc) ([]string, boo
 				if matchFunc(row, phrase) {
 					for _, cell := range strings.Split(row, "|") {
 						if matchFunc(cell, phrase) {
-							contexts = append(contexts, strings.TrimSpace(cell))
+							contexts = append(contexts, ContextMatch{Text: strings.TrimSpace(cell), Line: lineNumber})
 						}
 					}
 				}
@@ -48,7 +56,7 @@ func context(s string, phrase string, matchFunc ContextMatchFunc) ([]string, boo
 			continue
 		}
 
-		contexts = append(contexts, match)
+		contexts = append(contexts, ContextMatch{Text: match, Line: lineNumber})
 	}
 
 	return contexts, true
@@ -71,13 +79,13 @@ func contextRegex(phrase string) *regexp.Regexp {
 	return contextRegexCache[phrase]
 }
 
-func Context(s string, phrase string) ([]string, bool) {
+func Context(s string, phrase string) ([]ContextMatch, bool) {
 	return context(s, phrase, func(s string, t string) bool {
 		return strings.Contains(s, phrase)
 	})
 }
 
-func ContextFold(s string, phrase string) ([]string, bool) {
+func ContextFold(s string, phrase string) ([]ContextMatch, bool) {
 	return context(s, phrase, func(s string, t string) bool {
 		return strings.Contains(strings.ToLower(s), strings.ToLower(phrase))
 	})

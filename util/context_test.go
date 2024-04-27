@@ -11,27 +11,27 @@ func TestContext(t *testing.T) {
 	tests := []struct {
 		source string
 		phrase string
-		want   []string
+		want   []ContextMatch
 	}{
-		{"This is some example text about nothing or maybe something", "text", []string{"This is some example text about nothing or maybe something"}},
-		{"This is some example text about nothing\nor maybe something", "text", []string{"This is some example text about nothing\nor maybe something"}},
-		{"This is some example text about nothing\n\nor maybe something", "text", []string{"This is some example text about nothing"}},
+		{"This is some example text about nothing or maybe something", "text", []ContextMatch{{Text: "This is some example text about nothing or maybe something", Line: 1}}},
+		{"This is some example text about nothing\nor maybe something", "text", []ContextMatch{{Text: "This is some example text about nothing\nor maybe something", Line: 1}}},
+		{"This is some example text about nothing\n\nor maybe something", "text", []ContextMatch{{Text: "This is some example text about nothing", Line: 1}}},
 
-		{"1. This is an example list about nothing\nor maybe something", "list", []string{"This is an example list about nothing"}},
-		{"1) This is an example list about nothing\nor maybe something", "list", []string{"This is an example list about nothing"}},
-		{"+ This is an example list about nothing\nor maybe something", "list", []string{"This is an example list about nothing"}},
-		{"- This is an example list about nothing\nor maybe something", "list", []string{"This is an example list about nothing"}},
-		{"* This is an example list about nothing\nor maybe something", "list", []string{"This is an example list about nothing"}},
-		{"   * This is an example list about nothing\nor maybe something", "list", []string{"This is an example list about nothing"}},
-		{" * This is an example\n* list about nothing\nor maybe something", "list", []string{"list about nothing"}},
+		{"1. This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
+		{"1) This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
+		{"+ This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
+		{"- This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
+		{"* This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
+		{"   * This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
+		{" * This is an example\n* list about nothing\nor maybe something", "list", []ContextMatch{{Text: "list about nothing", Line: 1}}},
 
-		{" * This is an example\n* list about nothing\nNot a list", "list", []string{"list about nothing", "Not a list"}},
+		{" * This is an example\n* list about nothing\nNot a list", "list", []ContextMatch{{Text: "list about nothing", Line: 1}, {Text: "Not a list", Line: 2}}},
 
-		{" * This is a list entry\n* list about nothing\nor maybe something", "list", []string{"This is a list entry", "list about nothing"}},
-		{"Example 1\n\nanother example\n\nand another", "another", []string{"another example", "and another"}},
+		{" * This is a list entry\n* list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is a list entry", Line: 1}, {Text: "list about nothing", Line: 2}}},
+		{"Example 1\n\nanother example\n\nand another", "another", []ContextMatch{{Text: "another example", Line: 1}, {Text: "and another", Line: 3}}},
 
-		{"|Column A|Column B|\n|------|------|\n|Value foo|Value bar|", "foo", []string{"Value foo"}},
-		{"| Column A | Column B |\n| ------ | ------ |\n| Value foo | Value bar |", "foo", []string{"Value foo"}},
+		{"|Column A|Column B|\n|------|------|\n|Value foo|Value bar|", "foo", []ContextMatch{{Text: "Value foo", Line: 1}}},
+		{"| Column A | Column B |\n| ------ | ------ |\n| Value foo | Value bar |", "foo", []ContextMatch{{Text: "Value foo", Line: 1}}},
 	}
 
 	for _, test := range tests {
@@ -41,7 +41,7 @@ func TestContext(t *testing.T) {
 				t.Fatalf("Expected ok but was not ok")
 			}
 			if !reflect.DeepEqual(got, test.want) {
-				t.Fatalf("expected '%s' but was '%s'", test.want, got)
+				t.Fatalf("expected '%+v' but was '%+v'", test.want, got)
 			}
 		})
 	}
@@ -52,13 +52,13 @@ func TestContextFold(t *testing.T) {
 	tests := []struct {
 		source string
 		phrase string
-		want   []string
+		want   []ContextMatch
 	}{
-		{"|Column A|Column B|\n|------|------|\n|Value foo|Value bar|", "foo", []string{"Value foo"}},
-		{"| Column A | Column B |\n| ------ | ------ |\n| Value foo | Value bar |", "foo", []string{"Value foo"}},
+		{"|Column A|Column B|\n|------|------|\n|Value foo|Value bar|", "foo", []ContextMatch{{Text: "Value foo", Line: 3}}},
+		{"| Column A | Column B |\n| ------ | ------ |\n| Value foo | Value bar |", "foo", []ContextMatch{{Text: "Value foo", Line: 3}}},
 
-		{"|Column A|Column B|\n|------|------|\n|Value Foo|Value Bar|", "foo", []string{"Value Foo"}},
-		{"| Column A | Column B |\n| ------ | ------ |\n| Value Foo | Value Bar |", "foo", []string{"Value Foo"}},
+		{"|Column A|Column B|\n|------|------|\n|Value Foo|Value Bar|", "foo", []ContextMatch{{Text: "Value Foo", Line: 3}}},
+		{"| Column A | Column B |\n| ------ | ------ |\n| Value Foo | Value Bar |", "foo", []ContextMatch{{Text: "Value Foo", Line: 3}}},
 	}
 
 	for _, test := range tests {
@@ -68,7 +68,7 @@ func TestContextFold(t *testing.T) {
 				t.Fatalf("Expected ok but was not ok")
 			}
 			if !reflect.DeepEqual(got, test.want) {
-				t.Fatalf("expected '%s' but was '%s'", test.want, got)
+				t.Fatalf("expected '%+v' but was '%+v'", test.want, got)
 			}
 		})
 	}
