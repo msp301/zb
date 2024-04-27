@@ -146,9 +146,11 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 	for adjId := range book.Notes.Adjacency[id] {
 		vertex := book.Notes.Vertices[adjId]
 		contexts := []util.ContextMatch{{Text: "", Line: 0}}
+		startLine := 0
 
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
+			startLine = val.Start
 			matched, ok := util.Context(val.Content, fmt.Sprint(id))
 			if ok {
 				contexts = matched
@@ -158,6 +160,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 		for _, context := range contexts {
 			result := Result{
 				Context: context.Text,
+				Line:    startLine + context.Line,
 				Value:   vertex,
 			}
 			results = append(results, result)
@@ -186,9 +189,11 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 	intersection := book.TagIntersection(tagVerticesSlice)
 	for _, vertex := range intersection {
 		context := []util.ContextMatch{{Text: "", Line: 0}}
+		startLine := 0
 
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
+			startLine = val.Start
 			matchedTag := ""
 			for _, tagVertex := range tagVerticesSlice {
 				if book.Notes.IsEdge(tagVertex.Vertex.Id, vertex.Id) {
@@ -205,7 +210,7 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 		for _, context := range context {
 			result := Result{
 				Context: context.Text,
-				Line:    context.Line,
+				Line:    startLine + context.Line,
 				Value:   vertex,
 			}
 			results = append(results, result)

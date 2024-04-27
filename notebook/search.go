@@ -13,10 +13,12 @@ func (book *Notebook) Search(query ...string) []Result {
 	for vertex := range traversal.V().HasLabel("note").Iterate() {
 		var context []util.ContextMatch
 		matched := false
+		startLine := 0
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
 			content := val.Title + "\n\n" + val.Content
 			paragraphs := extractParagraphs(content)
+			startLine = val.Start
 		PARAGRAPH:
 			for _, paragraph := range paragraphs {
 				termsMatched := 0
@@ -49,7 +51,7 @@ func (book *Notebook) Search(query ...string) []Result {
 		for _, context := range context {
 			result := Result{
 				Context: context.Text,
-				Line:    context.Line,
+				Line:    startLine + context.Line,
 				Value:   vertex,
 			}
 			results = append(results, result)
