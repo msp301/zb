@@ -23,15 +23,15 @@ func TestContext(t *testing.T) {
 		{"- This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
 		{"* This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
 		{"   * This is an example list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is an example list about nothing", Line: 1}}},
-		{" * This is an example\n* list about nothing\nor maybe something", "list", []ContextMatch{{Text: "list about nothing", Line: 1}}},
+		{" * This is an example\n* list about nothing\nor maybe something", "list", []ContextMatch{{Text: "list about nothing", Line: 2}}},
 
-		{" * This is an example\n* list about nothing\nNot a list", "list", []ContextMatch{{Text: "list about nothing", Line: 1}, {Text: "Not a list", Line: 2}}},
+		{" * This is an example\n* list about nothing\nNot a list", "list", []ContextMatch{{Text: "list about nothing", Line: 2}, {Text: "Not a list", Line: 3}}},
 
 		{" * This is a list entry\n* list about nothing\nor maybe something", "list", []ContextMatch{{Text: "This is a list entry", Line: 1}, {Text: "list about nothing", Line: 2}}},
-		{"Example 1\n\nanother example\n\nand another", "another", []ContextMatch{{Text: "another example", Line: 1}, {Text: "and another", Line: 3}}},
+		{"Example 1\n\nanother example\n\nand another", "another", []ContextMatch{{Text: "another example", Line: 3}, {Text: "and another", Line: 5}}},
 
-		{"|Column A|Column B|\n|------|------|\n|Value foo|Value bar|", "foo", []ContextMatch{{Text: "Value foo", Line: 1}}},
-		{"| Column A | Column B |\n| ------ | ------ |\n| Value foo | Value bar |", "foo", []ContextMatch{{Text: "Value foo", Line: 1}}},
+		{"|Column A|Column B|\n|------|------|\n|Value foo|Value bar|", "foo", []ContextMatch{{Text: "Value foo", Line: 3}}},
+		{"| Column A | Column B |\n| ------ | ------ |\n| Value foo | Value bar |", "foo", []ContextMatch{{Text: "Value foo", Line: 3}}},
 	}
 
 	for _, test := range tests {

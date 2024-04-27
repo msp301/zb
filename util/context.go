@@ -34,8 +34,9 @@ func context(s string, phrase string, matchFunc ContextMatchFunc) ([]ContextMatc
 		lineNumber := strings.Count(s[:strings.Index(s, match)], "\n") + 1
 
 		if isMarkdownList(match) {
-			for _, line := range strings.Split(match, "\n") {
+			for index, line := range strings.Split(match, "\n") {
 				if matchFunc(line, phrase) {
+					lineNumber := lineNumber + index
 					context := mdListEntryRegex.FindStringSubmatch(line)
 					contexts = append(contexts, ContextMatch{Text: context[2], Line: lineNumber})
 				}
@@ -44,8 +45,9 @@ func context(s string, phrase string, matchFunc ContextMatchFunc) ([]ContextMatc
 		}
 
 		if isMarkdownTable(match) {
-			for _, row := range strings.Split(match, "\n") {
+			for index, row := range strings.Split(match, "\n") {
 				if matchFunc(row, phrase) {
+					lineNumber := lineNumber + index
 					for _, cell := range strings.Split(row, "|") {
 						if matchFunc(cell, phrase) {
 							contexts = append(contexts, ContextMatch{Text: strings.TrimSpace(cell), Line: lineNumber})
