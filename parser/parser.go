@@ -32,9 +32,10 @@ func Parse(filepath string) []Note {
 	tagMap := map[string]int{}
 	var links []uint64
 
-	lineNum := 1
+	lineNum := 0
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
+		lineNum++
 
 		if len(strings.TrimSpace(line)) == 0 {
 			if contentStart > 0 {
@@ -47,6 +48,7 @@ func Parse(filepath string) []Note {
 		if isNoteDivider {
 			note := Note{
 				Content: strings.TrimSpace(content),
+				Start:   contentStart,
 				File:    filepath,
 				Links:   links,
 				Tags:    ConvertTagMapToTagNames(tagMap),
@@ -105,11 +107,11 @@ func Parse(filepath string) []Note {
 				}
 			}
 		}
-		lineNum++
 	}
 
 	note := Note{
 		Content: strings.TrimSpace(content),
+		Start:   contentStart,
 		File:    filepath,
 		Links:   links,
 		Tags:    ConvertTagMapToTagNames(tagMap),
