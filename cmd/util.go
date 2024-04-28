@@ -41,9 +41,9 @@ func renderResults(results []notebook.Result) {
 			switch vertex := val.Properties["Value"].(type) {
 			case parser.Note:
 				if len(result.Context) > 0 {
-					fmt.Printf("%s:%d - %s\n", vertex.File, result.Line, result.Context)
+					fmt.Printf("%s:%d: - %s\n", vertex.File, result.Line, result.Context)
 				} else {
-					fmt.Printf("%s - %s\n", vertex.File, vertex.Title)
+					fmt.Printf("%s:%d: - %s\n", vertex.File, vertex.Start, vertex.Title)
 				}
 			case string:
 				fmt.Printf("%s\n", vertex)
