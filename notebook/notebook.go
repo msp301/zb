@@ -160,7 +160,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 		for _, context := range contexts {
 			result := Result{
 				Context: context.Text,
-				Line:    startLine + context.Line,
+				Line:    startLine + context.Line - 1,
 				Value:   vertex,
 			}
 			results = append(results, result)
@@ -210,7 +210,7 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 		for _, context := range context {
 			result := Result{
 				Context: context.Text,
-				Line:    startLine + context.Line,
+				Line:    startLine + context.Line - 1,
 				Value:   vertex,
 			}
 			results = append(results, result)

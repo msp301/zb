@@ -16,7 +16,7 @@ func (book *Notebook) Search(query ...string) []Result {
 		startLine := 0
 		switch val := vertex.Properties["Value"].(type) {
 		case parser.Note:
-			content := val.Title + "\n\n" + val.Content
+			content := val.Content
 			paragraphs := extractParagraphs(content)
 			startLine = val.Start
 		PARAGRAPH:
@@ -51,7 +51,7 @@ func (book *Notebook) Search(query ...string) []Result {
 		for _, context := range context {
 			result := Result{
 				Context: context.Text,
-				Line:    startLine + context.Line,
+				Line:    startLine + context.Line - 1,
 				Value:   vertex,
 			}
 			results = append(results, result)

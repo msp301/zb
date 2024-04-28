@@ -78,7 +78,6 @@ func Parse(filepath string) []Note {
 			title = line
 			if strings.HasPrefix(line, "# ") {
 				title = line[2:]
-				continue
 			}
 			content += fmt.Sprintln(line)
 		}
