@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var noiseRegex = regexp.MustCompile(`[^\s\w#.]`)
+var noiseRegex = regexp.MustCompile(`[^\s\w#.-]`)
 
 func ParagraphMatches(content string, query string) bool {
 	content = noiseRegex.ReplaceAllString(content, " ")
