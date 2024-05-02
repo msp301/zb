@@ -45,7 +45,7 @@ func TestParseDuplicateTags(t *testing.T) {
 	got := Parse("examples/tags.md")
 	want := []Note{
 		{
-			Content: "This is a #test file. #test\nWith #several #tags mentioned\n#several times.\n\n## Subheading\n\n#Order is preserved.\nThis is a tag in quotes \"#1-1\"\n#C# and #C++ are valid tags.\nTag in a URL: http://example.com/#foo\n\n\\#ignored",
+			Content: "# Test tags mentioned multiple times\n\nThis is a #test file. #test\nWith #several #tags mentioned\n#several times.\n\n## Subheading\n\n#Order is preserved.\nThis is a tag in quotes \"#1-1\"\n#C# and #C++ are valid tags.\nTag in a URL: http://example.com/#foo\n\n\\#ignored",
 			File:    "examples/tags.md",
 			Id:      202204192322,
 			Links:   nil,
@@ -63,7 +63,7 @@ func TestParseMultiNoteFile(t *testing.T) {
 	got := Parse("examples/multi_note.md")
 	want := []Note{
 		{
-			Content: "talk about some #thing",
+			Content: "# First note\n\ntalk about some #thing",
 			File:    "examples/multi_note.md",
 			Id:      202001300000,
 			Links:   nil,
@@ -72,7 +72,7 @@ func TestParseMultiNoteFile(t *testing.T) {
 			Title:   "First note",
 		},
 		{
-			Content: "#fruit\n* apple\n* orange",
+			Content: "# Second note\n\n#fruit\n* apple\n* orange",
 			File:    "examples/multi_note.md",
 			Id:      202002010000,
 			Links:   []uint64{},
@@ -81,7 +81,7 @@ func TestParseMultiNoteFile(t *testing.T) {
 			Title:   "Second note",
 		},
 		{
-			Content: "No date or tags :(",
+			Content: "# Bad note\n\nNo date or tags :(",
 			File:    "examples/multi_note.md",
 			Id:      0,
 			Links:   []uint64{},
@@ -90,7 +90,7 @@ func TestParseMultiNoteFile(t *testing.T) {
 			Title:   "Bad note",
 		},
 		{
-			Content: "stuff --- stuff ---\n\n    A #link anchor should not be a tag\nhttp://localhost/test#anchor\n\n[ ] Don't forget #todo this important thing\n\n[[202002010000]]",
+			Content: "# Third note\n\nstuff --- stuff ---\n\n    A #link anchor should not be a tag\nhttp://localhost/test#anchor\n\n[ ] Don't forget #todo this important thing\n\n[[202002010000]]",
 			File:    "examples/multi_note.md",
 			Id:      202002020001,
 			Links:   []uint64{202002010000},
