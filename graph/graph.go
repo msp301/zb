@@ -121,11 +121,13 @@ func gitNoteId(note parser.Note) uint64 {
 	noteDir := filepath.Dir(note.File)
 	ref, err := git.PlainOpen(noteDir)
 	if err != nil {
+		fmt.Printf("Error opening git repo: %s\n", err)
 		return note.Id
 	}
 
 	cIter, err := ref.Log(&git.LogOptions{FileName: &note.File})
 	if err != nil {
+		fmt.Printf("Error getting log: %s\n", err)
 		return note.Id
 	}
 
@@ -138,6 +140,7 @@ func gitNoteId(note parser.Note) uint64 {
 	commitTimeString := fmt.Sprintf("%d%d%d%d%d", commitTime.Year(), commitTime.Month(), commitTime.Day(), commitTime.Hour(), commitTime.Minute())
 	commitTimeInt, err := strconv.ParseUint(commitTimeString, 0, 64)
 	if err != nil {
+		fmt.Printf("Error parsing commit time: %s\n", err)
 		return note.Id
 	}
 

@@ -14,7 +14,7 @@ var recentCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		maxResults := viper.GetInt("number")
 		results := 0
-		book().Notes.WalkBackwards(func(vertex graph.Vertex, _ int) bool {
+		book().Notes.WalkGit(func(vertex graph.Vertex, _ int) bool {
 			if results >= maxResults {
 				return false
 			}
