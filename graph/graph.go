@@ -2,7 +2,12 @@ package graph
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
+	"strconv"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/msp301/zb/parser"
 )
 
 type Vertex struct {
@@ -91,6 +96,52 @@ func (g *Graph) WalkBackwards(callback WalkFunc, maxDepth int) {
 	g.orderedWalk(callback, maxDepth, func(a, b uint64) bool {
 		return a > b
 	})
+}
+
+func (g *Graph) WalkGit(callback WalkFunc, maxDepth int) {
+	g.orderedWalk(callback, maxDepth, func(a, b uint64) bool {
+		refA := a
+		refB := b
+
+		switch vertexA := g.Vertices[a].Properties["Value"].(type) {
+		case parser.Note:
+			refA = gitNoteId(vertexA)
+		}
+
+		switch vertexB := g.Vertices[b].Properties["Value"].(type) {
+		case parser.Note:
+			refB = gitNoteId(vertexB)
+		}
+
+		return refA > refB
+	})
+}
+
+func gitNoteId(note parser.Note) uint64 {
+	noteDir := filepath.Dir(note.File)
+	ref, err := git.PlainOpen(noteDir)
+	if err != nil {
+		return note.Id
+	}
+
+	cIter, err := ref.Log(&git.LogOptions{FileName: &note.File})
+	if err != nil {
+		return note.Id
+	}
+
+	commit, err := cIter.Next()
+	if err != nil {
+		return note.Id
+	}
+
+	commitTime := commit.Committer.When
+	commitTimeString := fmt.Sprintf("%d%d%d%d%d", commitTime.Year(), commitTime.Month(), commitTime.Day(), commitTime.Hour(), commitTime.Minute())
+	commitTimeInt, err := strconv.ParseUint(commitTimeString, 0, 64)
+	if err != nil {
+		return note.Id
+	}
+
+	return commitTimeInt
 }
 
 type WalkSort func(a, b uint64) bool
