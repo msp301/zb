@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -44,7 +45,24 @@ var newCmd = &cobra.Command{
 			log.Fatalf("Error getting absolute path: %s", err)
 		}
 
-		fmt.Println(fullPath)
+		command := exec.Command("nvim", fullPath)
+		command.Stdin = os.Stdin
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+
+		err = command.Start()
+		if err != nil {
+			log.Printf("Error opening note in vim: %s\n", err)
+			fmt.Println(fullPath)
+			os.Exit(1)
+		}
+
+		err = command.Wait()
+		if err != nil {
+			log.Printf("Error waiting for vim to close: %s\n", err)
+			fmt.Println(fullPath)
+			os.Exit(1)
+		}
 	},
 }
 
