@@ -16,14 +16,11 @@ var configCmd = &cobra.Command{
 	Short: "Get and set configuration options",
 	Run: func(cmd *cobra.Command, args []string) {
 		configFile := viper.ConfigFileUsed()
-		isGlobal, _ := cmd.Flags().GetBool("global")
 
 		if configFile != "" {
 			fmt.Printf("Config file used: %s\n\n", viper.ConfigFileUsed())
-		} else if isGlobal {
-			configFile = config.GlobalConfigFile
 		} else {
-			configFile = config.ConfigFile
+			configFile = config.GlobalConfigFile
 		}
 
 		if edit, _ := cmd.Flags().GetBool("edit"); edit {
@@ -89,7 +86,6 @@ var configCmd = &cobra.Command{
 
 func init() {
 	configCmd.PersistentFlags().BoolP("edit", "e", false, "Open configuration file in editor")
-	configCmd.PersistentFlags().BoolP("global", "g", false, "Use global configuration file")
 	configCmd.PersistentFlags().BoolP("save", "s", false, "Write current configuration to file")
 	configCmd.PersistentFlags().BoolP("unset", "u", false, "Delete configuration option value")
 	rootCmd.AddCommand(configCmd)

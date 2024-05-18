@@ -53,7 +53,6 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		viper.AddConfigPath(".")
 		viper.AddConfigPath(config.GlobalConfigDir)
 
 		viper.SetConfigType(config.CONFIG_TYPE)
