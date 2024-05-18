@@ -17,10 +17,12 @@ var configCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		configFile := viper.ConfigFileUsed()
 
-		if configFile != "" {
-			fmt.Printf("Config file used: %s\n\n", viper.ConfigFileUsed())
-		} else {
+		if configFile == "" {
 			configFile = config.GlobalConfigFile
+		}
+
+		if configFile != config.GlobalConfigFile {
+			fmt.Printf("Config file used: %s\n\n", viper.ConfigFileUsed())
 		}
 
 		if edit, _ := cmd.Flags().GetBool("edit"); edit {
