@@ -16,11 +16,20 @@ var configCmd = &cobra.Command{
 		if configFile != "" {
 			fmt.Printf("Config file used: %s\n\n", viper.ConfigFileUsed())
 		}
+
 		jsonStr, _ := json.MarshalIndent(viper.AllSettings(), "", "  ")
 		fmt.Println(string(jsonStr))
+
+		save, _ := cmd.Flags().GetBool("save")
+		if save {
+			viper.WriteConfig()
+			fmt.Println("Configuration saved to", viper.ConfigFileUsed())
+		}
 	},
 }
 
 func init() {
+	configCmd.PersistentFlags().BoolP("save", "s", false, "Write current configuration to file")
+	viper.BindPFlag("save", configCmd.PersistentFlags().Lookup("save"))
 	rootCmd.AddCommand(configCmd)
 }
