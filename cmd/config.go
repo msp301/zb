@@ -3,6 +3,9 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 	"reflect"
 
 	"github.com/msp301/zb/config"
@@ -36,8 +39,7 @@ var configCmd = &cobra.Command{
 
 			save, _ := cmd.Flags().GetBool("save")
 			if save {
-				viper.WriteConfigAs(configFile)
-				fmt.Println("Configuration saved to", configFile)
+				writeConfig(configFile)
 			}
 
 			return
@@ -61,8 +63,7 @@ var configCmd = &cobra.Command{
 				viper.Set(option, "")
 			}
 
-			viper.WriteConfigAs(configFile)
-			fmt.Println("Configuration updated")
+			writeConfig(configFile)
 			return
 		}
 
@@ -80,10 +81,23 @@ var configCmd = &cobra.Command{
 				viper.Set(option, args[1])
 			}
 
-			viper.WriteConfigAs(configFile)
-			fmt.Println("Configuration updated")
+			writeConfig(configFile)
 		}
 	},
+}
+
+func writeConfig(filename string) {
+	configDir := filepath.Dir(filename)
+	err := os.MkdirAll(configDir, 0755)
+	if err != nil {
+		log.Fatalf("Error creating config directory: %s", err)
+	}
+
+	err = viper.WriteConfigAs(filename)
+	if err != nil {
+		log.Fatalf("Error saving configuration: %s", err)
+	}
+	fmt.Println("Configuration updated")
 }
 
 func init() {
