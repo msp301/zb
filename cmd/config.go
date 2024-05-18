@@ -50,6 +50,23 @@ var configCmd = &cobra.Command{
 			return
 		}
 
+		if unset, _ := cmd.Flags().GetBool("unset"); unset {
+			// Viper does not have in-built support for deleting or unsetting a config key (https://github.com/spf13/viper/pull/519)
+			value := viper.Get(option)
+			rt := reflect.TypeOf(value)
+			switch rt.Kind() {
+			case reflect.Array:
+			case reflect.Slice:
+				viper.Set(option, []string{})
+			default:
+				viper.Set(option, "")
+			}
+
+			viper.WriteConfigAs(configFile)
+			fmt.Println("Configuration updated")
+			return
+		}
+
 		if len(args) == 1 {
 			value := viper.Get(option)
 			fmt.Println(value)
@@ -74,5 +91,6 @@ func init() {
 	configCmd.PersistentFlags().BoolP("edit", "e", false, "Open configuration file in editor")
 	configCmd.PersistentFlags().BoolP("global", "g", false, "Use global configuration file")
 	configCmd.PersistentFlags().BoolP("save", "s", false, "Write current configuration to file")
+	configCmd.PersistentFlags().BoolP("unset", "u", false, "Delete configuration option value")
 	rootCmd.AddCommand(configCmd)
 }
