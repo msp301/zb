@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/msp301/zb/editor"
 	"github.com/msp301/zb/graph"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -12,6 +13,7 @@ import (
 )
 
 var cfgFile string
+var cfgEditor string
 
 var rootCmd = &cobra.Command{
 	Use:   "zb",
@@ -39,8 +41,10 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.zb.toml)")
+	rootCmd.PersistentFlags().StringVar(&cfgEditor, "editor", editor.FindEditor(), "program to open notes with")
 	rootCmd.PersistentFlags().StringSlice("directory", []string{defaultNotebookDir()}, "notebook directories")
 	viper.BindPFlag("directory", rootCmd.PersistentFlags().Lookup("directory"))
+	viper.BindPFlag("editor", rootCmd.PersistentFlags().Lookup("editor"))
 }
 
 func initConfig() {

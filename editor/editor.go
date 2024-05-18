@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func findEditor() string {
+func FindEditor() string {
 	editor := viper.GetString("editor")
 	if editor != "" {
 		return editor
@@ -21,7 +21,7 @@ func findEditor() string {
 }
 
 func Open(path string) error {
-	editor := findEditor()
+	editor := FindEditor()
 
 	command := exec.Command(editor, path)
 	command.Stdin = os.Stdin
