@@ -24,3 +24,12 @@ func init() {
 
 	GlobalConfigFile = filepath.Join(GlobalConfigDir, ConfigFile)
 }
+
+func IsConfigOption(key string) bool {
+	switch key {
+	case "alias", "directory", "editor":
+		return true
+	}
+
+	return false
+}

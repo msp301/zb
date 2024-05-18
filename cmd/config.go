@@ -42,8 +42,8 @@ var configCmd = &cobra.Command{
 		}
 
 		option := args[0]
-		if !viper.InConfig(option) {
-			fmt.Println("Option not found")
+		if !config.IsConfigOption(option) {
+			fmt.Printf("Option '%s' not found\n", option)
 			return
 		}
 
