@@ -3,13 +3,15 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"path"
+
+	"github.com/msp301/zb/config"
 	"github.com/msp301/zb/editor"
 	"github.com/msp301/zb/graph"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
-	"os"
-	"path"
 )
 
 var cfgFile string
@@ -51,14 +53,11 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-
 		viper.AddConfigPath(".")
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(config.GlobalConfigDir)
 
-		viper.SetConfigType("toml")
-		viper.SetConfigName(".zb")
+		viper.SetConfigType(config.CONFIG_TYPE)
+		viper.SetConfigName(config.CONFIG_NAME)
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
