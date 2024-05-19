@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/msp301/zb/config"
 	"github.com/msp301/zb/editor"
-	"github.com/msp301/zb/graph"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -21,14 +19,7 @@ var rootCmd = &cobra.Command{
 	Use:   "zb",
 	Short: "A Zettelkasten notebook utility",
 	Run: func(cmd *cobra.Command, args []string) {
-		book().Notes.Walk(func(vertex graph.Vertex, depth int) bool {
-			jsonStr, err := json.Marshal(vertex)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(string(jsonStr))
-			return true
-		}, -1)
+		cmd.Help()
 	},
 }
 
