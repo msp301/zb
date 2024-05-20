@@ -8,12 +8,14 @@ import (
 
 	"github.com/msp301/zb/config"
 	"github.com/msp301/zb/editor"
+	"github.com/msp301/zb/pager"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
 var cfgEditor string
+var cfgPager string
 
 var rootCmd = &cobra.Command{
 	Use:   "zb",
@@ -35,9 +37,12 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", fmt.Sprintf("config file (default is %s)", config.GlobalConfigFile))
 	rootCmd.PersistentFlags().StringVar(&cfgEditor, "editor", editor.FindEditor(), "program to open notes with")
+	rootCmd.PersistentFlags().StringVar(&cfgPager, "pager", pager.FindPager(), "program to page zb output")
 	rootCmd.PersistentFlags().StringSlice("directory", []string{}, "notebook directories")
+
 	viper.BindPFlag("directory", rootCmd.PersistentFlags().Lookup("directory"))
 	viper.BindPFlag("editor", rootCmd.PersistentFlags().Lookup("editor"))
+	viper.BindPFlag("pager", rootCmd.PersistentFlags().Lookup("pager"))
 }
 
 func initConfig() {
