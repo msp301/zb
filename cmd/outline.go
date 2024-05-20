@@ -42,7 +42,6 @@ var outlineCmd = &cobra.Command{
 					if err != nil {
 						log.Fatal(err)
 					}
-					// fmt.Printf("%s%s - %s\n", indent, val.File, val.Title)
 				}
 				return true
 			}, -1)
