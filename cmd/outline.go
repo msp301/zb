@@ -32,6 +32,8 @@ var outlineCmd = &cobra.Command{
 		}
 
 		go func() {
+			defer pipe.Close()
+
 			book().Notes.Walk(func(vertex graph.Vertex, depth int) bool {
 				indent := strings.Repeat("\t", depth)
 				switch val := vertex.Properties["Value"].(type) {
