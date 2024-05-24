@@ -38,7 +38,7 @@ var outlineCmd = &cobra.Command{
 				indent := strings.Repeat("\t", depth)
 				switch val := vertex.Properties["Value"].(type) {
 				case parser.Note:
-					_, err := io.WriteString(pipe, fmt.Sprintf("%s%s - %s\n", indent, val.File, val.Title))
+					_, err := fmt.Fprintf(pipe, "%s%s - %s\n", indent, val.File, val.Title)
 					if err != nil {
 						log.Fatal(err)
 					}
