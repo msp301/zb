@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/pager"
@@ -19,17 +20,26 @@ var outlineCmd = &cobra.Command{
 	Short: "Output notes as a tree",
 	Run: func(cmd *cobra.Command, args []string) {
 		pager := pager.FindPager()
+
+		var pipe io.WriteCloser
+
+		var command *exec.Cmd
 		if pager == "" {
-			log.Fatal("No pager found")
+			pipe = os.Stdout
+		} else {
+			command = exec.Command(pager)
+			command.Stdout = os.Stdout
+			command.Stderr = os.Stderr
+
+			var err error
+			pipe, err = command.StdinPipe()
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
-		command := exec.Command(pager)
-		command.Stdout = os.Stdout
-		command.Stderr = os.Stderr
-		pipe, err := command.StdinPipe()
-		if err != nil {
-			log.Fatal(err)
-		}
+		var wg sync.WaitGroup
+		wg.Add(1)
 
 		go func() {
 			defer pipe.Close()
@@ -45,11 +55,16 @@ var outlineCmd = &cobra.Command{
 				}
 				return true
 			}, -1)
+
+			wg.Done()
 		}()
 
-		err = command.Run()
-		if err != nil {
-			log.Fatal(err)
+		if pager == "" {
+			wg.Wait()
+		} else {
+			if err := command.Run(); err != nil {
+				log.Fatal(err)
+			}
 		}
 	},
 }
