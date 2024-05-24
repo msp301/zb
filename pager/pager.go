@@ -70,3 +70,7 @@ func (pager *Pager) Wait() error {
 func (pager *Pager) Writef(format string, args ...interface{}) (int, error) {
 	return fmt.Fprintf(pager.pipe, format, args...)
 }
+
+func (pager *Pager) Writeln(line string) (int, error) {
+	return fmt.Fprintln(pager.pipe, line)
+}

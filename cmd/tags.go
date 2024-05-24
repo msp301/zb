@@ -1,7 +1,9 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
+
+	"github.com/msp301/zb/pager"
 	"github.com/spf13/cobra"
 )
 
@@ -15,15 +17,27 @@ var tagsCmd = &cobra.Command{
 			searchTag = args[0]
 		}
 
-		if connections, err := cmd.Flags().GetBool("connections"); err == nil && connections {
-			for _, tagConnection := range book().TagConnections(searchTag) {
-				fmt.Printf("%d %s\n", tagConnection.Connections, tagConnection.Tag)
-			}
-			return
+		pager, err := pager.Open()
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		for _, tag := range book().Tags(searchTag) {
-			fmt.Println(tag)
+		go func() {
+			defer pager.Close()
+			if connections, err := cmd.Flags().GetBool("connections"); err == nil && connections {
+				for _, tagConnection := range book().TagConnections(searchTag) {
+					pager.Writef("%d %s\n", tagConnection.Connections, tagConnection.Tag)
+				}
+				return
+			}
+
+			for _, tag := range book().Tags(searchTag) {
+				pager.Writeln(tag)
+			}
+		}()
+
+		if err := pager.Wait(); err != nil {
+			log.Fatal(err)
 		}
 	},
 }

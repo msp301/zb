@@ -7,6 +7,7 @@ import (
 	"github.com/msp301/zb/bookshelf"
 	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/notebook"
+	"github.com/msp301/zb/pager"
 	"github.com/msp301/zb/parser"
 	"github.com/spf13/viper"
 )
@@ -35,19 +36,32 @@ func render(vertices []graph.Vertex) {
 }
 
 func renderResults(results []notebook.Result) {
-	for _, result := range results {
-		switch val := result.Value.(type) {
-		case graph.Vertex:
-			switch vertex := val.Properties["Value"].(type) {
-			case parser.Note:
-				if len(result.Context) > 0 {
-					fmt.Printf("%s:%d: - %s\n", vertex.File, result.Line, result.Context)
-				} else {
-					fmt.Printf("%s:%d: - %s\n", vertex.File, vertex.Start, vertex.Title)
+	pager, err := pager.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		defer pager.Close()
+
+		for _, result := range results {
+			switch val := result.Value.(type) {
+			case graph.Vertex:
+				switch vertex := val.Properties["Value"].(type) {
+				case parser.Note:
+					if len(result.Context) > 0 {
+						pager.Writef("%s:%d: - %s\n", vertex.File, result.Line, result.Context)
+					} else {
+						pager.Writef("%s:%d: - %s\n", vertex.File, vertex.Start, vertex.Title)
+					}
+				case string:
+					pager.Writef("%s\n", vertex)
 				}
-			case string:
-				fmt.Printf("%s\n", vertex)
 			}
 		}
+	}()
+
+	if err := pager.Wait(); err != nil {
+		log.Fatal(err)
 	}
 }
