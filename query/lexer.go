@@ -22,7 +22,7 @@ func (l *Lexer) readChar() {
 }
 
 func (l *Lexer) NextToken() Token {
-	var tokenType TokenType
+	var tokenType TokenType = END
 	var tokenValue string
 
 	buffer := bytes.NewBufferString(tokenValue)

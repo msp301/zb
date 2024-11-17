@@ -9,6 +9,7 @@ const (
 	RIGHT_BRACKET
 	SINGLE_QUOTE
 	DOUBLE_QUOTE
+	END
 )
 
 type TokenType int

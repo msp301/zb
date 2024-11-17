@@ -10,6 +10,7 @@ func TestNextToken(t *testing.T) {
 		{Type: TERM, Value: "bar"},
 		{Type: LEFT_BRACKET, Value: "("},
 		{Type: TERM, Value: "foo"},
+		{Type: END, Value: ""},
 	}
 
 	lexer := New("bar (foo")
