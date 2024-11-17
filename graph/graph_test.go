@@ -105,13 +105,13 @@ func TestWalk(t *testing.T) {
 		graph.AddVertex(Vertex{Id: uint64(i), Label: "vertex"})
 	}
 	_ = graph.AddEdge(Edge{From: 1, To: 2})
-	_ = graph.AddEdge(Edge{From: 2, To: 4})
+	_ = graph.AddEdge(Edge{From: 2, To: 5})
 	_ = graph.AddEdge(Edge{From: 2, To: 3})
 
 	var got []uint64
 	graph.Walk(func(vertex Vertex, depth int) bool { got = append(got, vertex.Id); return true }, -1)
 
-	want := []uint64{1, 2, 4, 3, 5}
+	want := []uint64{1, 2, 5, 3, 4}
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("Expected: %v\nGot: %v\n", want, got)
