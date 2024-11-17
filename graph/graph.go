@@ -19,18 +19,36 @@ type Edge struct {
 	To         uint64
 }
 
+const (
+	UNDIRECTED = iota
+	DIRECTED
+)
+
+type GraphType int
+
 type Graph struct {
+	Type      GraphType
 	Vertices  map[uint64]Vertex
 	Edges     map[uint64]Edge
 	Adjacency map[uint64]map[uint64]int
 }
 
 func New() *Graph {
+	return new(UNDIRECTED)
+}
+
+func Directed() *Graph {
+	return new(DIRECTED)
+}
+
+func new(t GraphType) *Graph {
 	return &Graph{
+		Type:      t,
 		Vertices:  map[uint64]Vertex{},
 		Edges:     map[uint64]Edge{},
 		Adjacency: map[uint64]map[uint64]int{},
 	}
+
 }
 
 func (g *Graph) AddVertex(vertex Vertex) {
@@ -49,10 +67,12 @@ func (g *Graph) AddEdge(edge Edge) error {
 	}
 	g.addEdge(edge)
 
-	reverse := edge
-	reverse.From = edge.To
-	reverse.To = edge.From
-	g.addEdge(reverse)
+	if g.Type == UNDIRECTED {
+		reverse := edge
+		reverse.From = edge.To
+		reverse.To = edge.From
+		g.addEdge(reverse)
+	}
 
 	return nil
 }

@@ -57,6 +57,29 @@ func TestAddEdge(t *testing.T) {
 	}
 }
 
+func TestDirectedAddEdge(t *testing.T) {
+	got := &Graph{
+		Type:      DIRECTED,
+		Vertices:  map[uint64]Vertex{1: {Id: 1}, 2: {Id: 2}, 3: {Id: 3}},
+		Edges:     map[uint64]Edge{},
+		Adjacency: map[uint64]map[uint64]int{},
+	}
+	_ = got.AddEdge(Edge{Id: 1, From: 1, To: 2, Label: "link"})
+
+	want := &Graph{
+		Type:      DIRECTED,
+		Vertices:  map[uint64]Vertex{1: {Id: 1}, 2: {Id: 2}, 3: {Id: 3}},
+		Edges:     map[uint64]Edge{1: {Id: 1, From: 1, To: 2, Label: "link"}},
+		Adjacency: map[uint64]map[uint64]int{1: {2: 1}},
+	}
+
+	t.Logf("Edges: %v", got.Edges)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Expected: %+v\nGot: %+v\n", want, got)
+	}
+}
+
 func TestAddEdge_ErrorsOnNonExistentVertex(t *testing.T) {
 	g := New()
 	g.AddVertex(Vertex{Id: 1})
