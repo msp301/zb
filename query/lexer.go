@@ -31,6 +31,18 @@ READER:
 		l.readChar()
 
 		if l.char == ' ' {
+			switch buffer.String() {
+			case "and":
+				tokenType = AND
+				break
+			case "or":
+				tokenType = OR
+				break
+			case "not":
+				tokenType = NOT
+				break
+			}
+
 			break READER
 		}
 
@@ -39,6 +51,15 @@ READER:
 		switch l.char {
 		case '(':
 			tokenType = LEFT_BRACKET
+			break READER
+		case ')':
+			tokenType = RIGHT_BRACKET
+			break READER
+		case '\'':
+			tokenType = SINGLE_QUOTE
+			break READER
+		case '"':
+			tokenType = DOUBLE_QUOTE
 			break READER
 		default:
 			tokenType = TERM
