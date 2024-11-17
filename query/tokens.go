@@ -14,6 +14,6 @@ const (
 type TokenType int
 
 type Token struct {
-	Type TokenType
+	Type  TokenType
 	Value string
 }

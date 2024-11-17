@@ -22,18 +22,31 @@ func (l *Lexer) readChar() {
 }
 
 func (l *Lexer) NextToken() Token {
+	var tokenType TokenType
 	var tokenValue string
 
 	buffer := bytes.NewBufferString(tokenValue)
-	for i := 0; i < len(l.input); i++ {
-		switch l.readChar(); l.char {
+READER:
+	for l.position < len(l.input) {
+		l.readChar()
+
+		if l.char == ' ' {
+			break READER
+		}
+
+		buffer.WriteByte(l.char)
+
+		switch l.char {
+		case '(':
+			tokenType = LEFT_BRACKET
+			break READER
 		default:
-			buffer.WriteByte(l.char)
+			tokenType = TERM
 		}
 	}
 
 	return Token{
-		Type:  TERM,
+		Type:  tokenType,
 		Value: buffer.String(),
 	}
 }

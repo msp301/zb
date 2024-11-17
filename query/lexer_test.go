@@ -8,9 +8,11 @@ import (
 func TestNextToken(t *testing.T) {
 	tests := []Token{
 		{Type: TERM, Value: "bar"},
+		{Type: LEFT_BRACKET, Value: "("},
+		{Type: TERM, Value: "foo"},
 	}
 
-	lexer := New("bar foo")
+	lexer := New("bar (foo")
 
 	for index, want := range tests {
 		t.Run(fmt.Sprintf("Position %d", index), func(t *testing.T) {
