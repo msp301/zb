@@ -2,6 +2,7 @@ package query
 
 import (
 	"bytes"
+	"slices"
 )
 
 type Lexer struct {
@@ -31,6 +32,10 @@ READER:
 		l.readChar()
 
 		if l.char == ' ' {
+			if len(buffer.String()) == 0 {
+				continue
+			}
+
 			switch buffer.String() {
 			case "and":
 				tokenType = AND
@@ -43,6 +48,12 @@ READER:
 				break
 			}
 
+			break READER
+		}
+
+		terminatingChars := []byte{'(', ')', '\'', '"'}
+		if len(buffer.String()) > 0 && slices.Contains(terminatingChars, l.char) {
+			l.position = l.position - 1
 			break READER
 		}
 
