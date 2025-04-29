@@ -35,8 +35,9 @@ func (p *Parser) Parse() *graph.Graph {
 
 	for p.currentToken.Type != END {
 		ast.AddVertex(graph.Vertex{
-			Id:    uint64(p.position + 1),
-			Label: p.currentToken.String(),
+			Id:         uint64(p.position + 1),
+			Label:      p.currentToken.String(),
+			Properties: map[string]interface{}{"Value": p.currentToken},
 		})
 		p.readToken()
 	}

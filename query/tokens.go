@@ -22,7 +22,11 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	switch t.Type {
+	return tokenString(t.Type)
+}
+
+func tokenString(tokenType TokenType) string {
+	switch tokenType {
 	case TERM:
 		return "TERM"
 	case AND:
@@ -42,6 +46,6 @@ func (t *Token) String() string {
 	case END:
 		return "END"
 	default:
-		panic(fmt.Sprintf("Unknown token: %d", t.Type))
+		panic(fmt.Sprintf("Unknown token: %d", tokenType))
 	}
 }
