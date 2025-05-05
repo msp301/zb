@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/msp301/graph"
 	"github.com/msp301/zb/bookshelf"
-	"github.com/msp301/zb/graph"
 	"github.com/msp301/zb/notebook"
 	"github.com/msp301/zb/pager"
 	"github.com/msp301/zb/parser"

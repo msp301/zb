@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/msp301/zb/graph"
+	"github.com/msp301/graph"
 	"github.com/msp301/zb/pager"
 	"github.com/msp301/zb/parser"
 	"github.com/spf13/cobra"

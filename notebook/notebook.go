@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/msp301/zb/graph"
+	"github.com/msp301/graph"
 	"github.com/msp301/zb/parser"
 	"github.com/msp301/zb/util"
 )

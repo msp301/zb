@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/msp301/zb/graph"
+	"github.com/msp301/graph"
 	"github.com/spf13/cobra"
 )
 

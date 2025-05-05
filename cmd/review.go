@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/msp301/zb/graph"
+	"github.com/msp301/graph"
 	"github.com/msp301/zb/parser"
 	"github.com/spf13/cobra"
 	"math/rand"

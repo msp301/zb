@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/msp301/zb/graph"
+	"github.com/msp301/graph"
 )
 
 type Parser struct {

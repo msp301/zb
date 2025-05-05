@@ -1,7 +1,7 @@
 package notebook
 
 import (
-	"github.com/msp301/zb/graph"
+	"github.com/msp301/graph"
 	"reflect"
 	"testing"
 )

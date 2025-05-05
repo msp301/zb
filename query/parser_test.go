@@ -3,7 +3,7 @@ package query
 import (
 	"testing"
 
-	"github.com/msp301/zb/graph"
+	"github.com/msp301/graph"
 )
 
 func TestParse(t *testing.T) {
