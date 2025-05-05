@@ -1,6 +1,6 @@
 module github.com/msp301/zb
 
-go 1.18
+go 1.22.12
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -9,6 +9,7 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.5 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
+	github.com/msp301/graph v0.1.0 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.8 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
