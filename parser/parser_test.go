@@ -23,6 +23,24 @@ func TestParseValidNote(t *testing.T) {
 	}
 }
 
+func TestParseWikilinks(t *testing.T) {
+	got := Parse("examples/wikilinks.md")
+	want := []Note{
+		{
+			Content: "# Test wikilinks\n\nTest note with different [[202405011240|link styles]]. Another link ([[202503021105]]\n\nand [[202203310800]] but not [[foobar]] or [202501012210]",
+			File:    "examples/wikilinks.md",
+			Id:      202506162200,
+			Links:   []uint64{202405011240, 202503021105, 202203310800},
+			Start:   3,
+			Tags:    []string{},
+			Title:   "Test wikilinks",
+		},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
+	}
+}
+
 func TestParseCRLFNote(t *testing.T) {
 	got := Parse("examples/windows_note.md")
 	want := []Note{
