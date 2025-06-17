@@ -6,8 +6,6 @@ import (
 	"log"
 	"path/filepath"
 	"sort"
-	"strconv"
-	"strings"
 
 	"github.com/msp301/graph"
 	"github.com/msp301/zb/parser"
@@ -43,16 +41,7 @@ func (book *Notebook) Load(dir string) error {
 			log.Fatalf(err.Error())
 		}
 
-		if !strings.HasSuffix(d.Name(), ".md") {
-			return nil
-		}
-
-		nameWithoutSuffix := strings.TrimSuffix(d.Name(), ".md")
-		if !util.IdRegex.MatchString(nameWithoutSuffix) {
-			return nil
-		}
-
-		fileId, err := strconv.ParseUint(nameWithoutSuffix, 0, 64)
+		fileId, err := util.FileId(d.Name())
 		if err != nil {
 			return nil
 		}
