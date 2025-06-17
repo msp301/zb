@@ -17,7 +17,7 @@ var recentCmd = &cobra.Command{
 			if results >= maxResults {
 				return false
 			}
-			switch val := vertex.Properties["Value"].(type) {
+			switch val := vertex.Value.(type) {
 			case parser.Note:
 				fmt.Printf("%s - %s\n", val.File, val.Title)
 				results++

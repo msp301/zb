@@ -26,7 +26,7 @@ func book() *notebook.Notebook {
 
 func render(vertices []graph.Vertex) {
 	for _, vertex := range vertices {
-		switch val := vertex.Properties["Value"].(type) {
+		switch val := vertex.Value.(type) {
 		case parser.Note:
 			fmt.Printf("%s - %s\n", val.File, val.Title)
 		case string:
@@ -47,7 +47,7 @@ func renderResults(results []notebook.Result) {
 		for _, result := range results {
 			switch val := result.Value.(type) {
 			case graph.Vertex:
-				switch vertex := val.Properties["Value"].(type) {
+				switch vertex := val.Value.(type) {
 				case parser.Note:
 					if len(result.Context) > 0 {
 						pager.Writef("%s:%d: - %s\n", vertex.File, result.Line, result.Context)

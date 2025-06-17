@@ -137,6 +137,10 @@ github.com/mitchellh/mapstructure v1.4.3 h1:OVowDSCllw/YjdLkam3/sm7wEtOy59d8ndGg
 github.com/mitchellh/mapstructure v1.4.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/msp301/graph v0.1.0 h1:WjuyJfE72riOwsoF3ju3gaxVJbUTqv2JyD5sYkl13DE=
 github.com/msp301/graph v0.1.0/go.mod h1:kohQZcgkt4Qtl/PWoFAtxzCSAxWF50VZFGZ+oo8OsAY=
+github.com/msp301/graph v0.2.0 h1:KEZs6EDPZEcvPmEZrdWgC+CGPiHbAo7wCF1bZoG8GzU=
+github.com/msp301/graph v0.2.0/go.mod h1:kohQZcgkt4Qtl/PWoFAtxzCSAxWF50VZFGZ+oo8OsAY=
+github.com/msp301/graph v0.2.1 h1:1WnQZ4BGVUjG5AOV6uiogGwS8Nzk1ivMqlZb0aY4s98=
+github.com/msp301/graph v0.2.1/go.mod h1:kohQZcgkt4Qtl/PWoFAtxzCSAxWF50VZFGZ+oo8OsAY=
 github.com/pelletier/go-toml v1.9.4 h1:tjENF6MfZAg8e4ZmZTeWaWiT2vXtsoO6+iuOjFhECwM=
 github.com/pelletier/go-toml v1.9.4/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
 github.com/pelletier/go-toml/v2 v2.0.0-beta.8 h1:dy81yyLYJDwMTifq24Oi/IslOslRrDSb3jwDggjz3Z0=

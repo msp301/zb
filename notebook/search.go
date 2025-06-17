@@ -14,7 +14,7 @@ func (book *Notebook) Search(query ...string) []Result {
 		var context []util.ContextMatch
 		matched := false
 		startLine := 0
-		switch val := vertex.Properties["Value"].(type) {
+		switch val := vertex.Value.(type) {
 		case parser.Note:
 			content := val.Content
 			paragraphs := extractParagraphs(content)

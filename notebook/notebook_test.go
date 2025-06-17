@@ -8,13 +8,13 @@ import (
 
 func TestSearchByTag(t *testing.T) {
 	g := graph.New()
-	g.AddVertex(graph.Vertex{Id: 1, Label: "note"})
-	g.AddVertex(graph.Vertex{Id: 2, Label: "note"})
-	g.AddVertex(graph.Vertex{Id: 3, Label: "tag", Properties: map[string]interface{}{"Value": "#foo"}})
-	g.AddVertex(graph.Vertex{Id: 4, Label: "note"})
-	g.AddVertex(graph.Vertex{Id: 5, Label: "tag", Properties: map[string]interface{}{"Value": "#bar"}})
-	g.AddEdge(graph.Edge{Id: 100, Label: "tag", From: 2, To: 3})
-	g.AddEdge(graph.Edge{Id: 101, Label: "tag", From: 1, To: 5})
+	g.Add(1, "note", nil)
+	g.Add(2, "note", nil)
+	g.Add(3, "tag", "#foo")
+	g.Add(4, "note", nil)
+	g.Add(5, "tag", "#bar")
+	g.Edge(2, 3, "tag")
+	g.Edge(1, 5, "tag")
 	book := &Notebook{Notes: g}
 
 	got := book.SearchByTags("#foo")

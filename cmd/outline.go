@@ -24,7 +24,7 @@ var outlineCmd = &cobra.Command{
 
 			book().Notes.Walk(func(vertex graph.Vertex, depth int) bool {
 				indent := strings.Repeat("\t", depth)
-				switch val := vertex.Properties["Value"].(type) {
+				switch val := vertex.Value.(type) {
 				case parser.Note:
 					_, err := pager.Writef("%s%s - %s\n", indent, val.File, val.Title)
 					if err != nil {

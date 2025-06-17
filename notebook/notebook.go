@@ -57,7 +57,7 @@ func (book *Notebook) Load(dir string) error {
 			return nil
 		}
 
-		book.Notes.AddVertex(graph.Vertex{Id: fileId})
+		book.Notes.Add(fileId, "note", nil)
 		book.files = append(book.files, path)
 
 		return nil
@@ -74,14 +74,10 @@ func (book *Notebook) Read() []parser.Note {
 
 	NOTE:
 		for _, note := range fileNotes {
-			book.Notes.AddVertex(graph.Vertex{Id: note.Id, Label: "note", Properties: map[string]interface{}{"Value": note}})
+			book.Notes.Add(note.Id, "note", note)
 
 			for _, link := range note.Links {
-				err := book.Notes.AddEdge(graph.Edge{
-					Label: "link",
-					From:  note.Id,
-					To:    link,
-				})
+				err := book.Notes.Edge(note.Id, link, "link")
 				if err != nil {
 					book.Invalid[note.Id] = note
 				}
@@ -89,12 +85,8 @@ func (book *Notebook) Read() []parser.Note {
 
 			for _, tag := range note.Tags {
 				tagId := book.addTag(tag)
-				book.Notes.AddVertex(graph.Vertex{Id: tagId, Label: "tag", Properties: map[string]interface{}{"Value": tag}})
-				err := book.Notes.AddEdge(graph.Edge{
-					Label: "tag",
-					From:  note.Id,
-					To:    tagId,
-				})
+				book.Notes.Add(tagId, "tag", tag)
+				err := book.Notes.Edge(note.Id, tagId, "tag")
 				if err != nil {
 					book.Invalid[note.Id] = note
 				}
@@ -102,7 +94,7 @@ func (book *Notebook) Read() []parser.Note {
 
 			for _, tag := range note.Tags {
 				if !book.Notes.IsVertex(book.tags[tag]) {
-					book.Notes.AddVertex(graph.Vertex{Id: book.tags[tag], Label: "tag", Properties: map[string]interface{}{"Value": tag}})
+					book.Notes.Add(book.tags[tag], "tag", tag)
 				}
 
 				for _, relatedTag := range note.Tags {
@@ -110,13 +102,9 @@ func (book *Notebook) Read() []parser.Note {
 						continue
 					}
 					if !book.Notes.IsVertex(book.tags[relatedTag]) {
-						book.Notes.AddVertex(graph.Vertex{Id: book.tags[relatedTag], Label: "tag", Properties: map[string]interface{}{"Value": tag}})
+						book.Notes.Add(book.tags[relatedTag], "tag", tag)
 					}
-					err := book.Notes.AddEdge(graph.Edge{
-						Label: "tag",
-						From:  book.tags[tag],
-						To:    book.tags[relatedTag],
-					})
+					err := book.Notes.Edge(book.tags[tag], book.tags[relatedTag], "tag")
 					if err != nil {
 						book.Invalid[note.Id] = note
 					}
@@ -148,7 +136,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 		contexts := []util.ContextMatch{{Text: "", Line: 0}}
 		startLine := 0
 
-		switch val := vertex.Properties["Value"].(type) {
+		switch val := vertex.Value.(type) {
 		case parser.Note:
 			startLine = val.Start
 			matched, ok := util.Context(val.Content, fmt.Sprint(id))
@@ -173,7 +161,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 type Result struct {
 	Context string
 	Line    int
-	Value   interface{}
+	Value   any
 }
 
 type matchedTag struct {
@@ -191,13 +179,13 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 		context := []util.ContextMatch{{Text: "", Line: 0}}
 		startLine := 0
 
-		switch val := vertex.Properties["Value"].(type) {
+		switch val := vertex.Value.(type) {
 		case parser.Note:
 			startLine = val.Start
 			matchedTag := ""
 			for _, tagVertex := range tagVerticesSlice {
 				if book.Notes.IsEdge(tagVertex.Vertex.Id, vertex.Id) {
-					matchedTag = fmt.Sprint(tagVertex.Vertex.Properties["Value"])
+					matchedTag = fmt.Sprint(tagVertex.Vertex.Value)
 					break
 				}
 			}
@@ -252,7 +240,7 @@ func (book *Notebook) tagConnections(search string) []TagConnection {
 	var tagConnections []TagConnection
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("tag").Iterate() {
-		tag := fmt.Sprint(vertex.Properties["Value"])
+		tag := fmt.Sprint(vertex.Value)
 		if util.Matches(search, tag) {
 			tagConnection := TagConnection{Tag: tag, Connections: len(book.Notes.Adjacency[vertex.Id])}
 			tagConnections = append(tagConnections, tagConnection)
@@ -273,7 +261,7 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 	tagVertices := make(map[uint64]matchedTag)
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("tag").Iterate() {
-		tag := fmt.Sprint(vertex.Properties["Value"])
+		tag := fmt.Sprint(vertex.Value)
 		for _, searchTag := range searchTags {
 			if util.Matches(searchTag, tag) {
 				tagVertices[vertex.Id] = matchedTag{

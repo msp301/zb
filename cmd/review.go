@@ -27,7 +27,7 @@ var reviewCmd = &cobra.Command{
 			if count > num {
 				break
 			}
-			switch val := vertex.Properties["Value"].(type) {
+			switch val := vertex.Value.(type) {
 			case parser.Note:
 				fmt.Printf("%s - %s\n", val.File, val.Title)
 				count++

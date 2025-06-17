@@ -41,16 +41,16 @@ func check(t *testing.T, input string, want *graph.Graph) {
 			t.Fatalf("Expected %d.Label: %v. Got: %v\n", key, wantVertex.Label, gotVertex.Label)
 		}
 
-		switch gotVal := gotVertex.Properties["Value"].(type) {
+		switch gotVal := gotVertex.Value.(type) {
 		case Token:
-			wantVal := want.Vertices[key].Properties["Value"].(*Token)
+			wantVal := want.Vertices[key].Value.(*Token)
 
 			if gotVal.Type != wantVal.Type {
-				t.Fatalf("Expected %d.Properties.Value.Type: %v. Got: %v\n", key, wantVal.Type, gotVal.Type)
+				t.Fatalf("Expected %d.Value.Type: %v. Got: %v\n", key, wantVal.Type, gotVal.Type)
 			}
 
 			if gotVal.Value != wantVal.Value {
-				t.Fatalf("Expected %d.Properties.Value.Value: %v. Got: %v\n", key, wantVal.Value, gotVal.Value)
+				t.Fatalf("Expected %d.Value: %v. Got: %v\n", key, wantVal.Value, gotVal.Value)
 			}
 		default:
 			t.Fatalf("Unexpected Token %d: Got: %v\n", key, got)
@@ -60,8 +60,8 @@ func check(t *testing.T, input string, want *graph.Graph) {
 
 func tokenVertex(id uint64, tokenType TokenType, value string) *graph.Vertex {
 	return &graph.Vertex{
-		Id:         id,
-		Label:      tokenString(tokenType),
-		Properties: map[string]interface{}{"Value": &Token{Type: tokenType, Value: value}},
+		Id:    id,
+		Label: tokenString(tokenType),
+		Value: &Token{Type: tokenType, Value: value},
 	}
 }
