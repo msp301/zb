@@ -120,6 +120,8 @@ func (book *Notebook) IsNote(noteId uint64) bool {
 
 func (book *Notebook) SearchRelated(id uint64) []Result {
 	var results []Result
+	var matchedNote = false
+	var relatedTags = []string{}
 	for adjId := range book.Notes.Adjacency[id] {
 		vertex := book.Notes.Vertices[adjId]
 		contexts := []util.ContextMatch{{Text: "", Line: 0}}
@@ -131,7 +133,11 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 			matched, ok := util.Context(val.Content, fmt.Sprint(id))
 			if ok {
 				contexts = matched
+				matchedNote = true
 			}
+			break
+		case string:
+			relatedTags = append(relatedTags, val)
 		}
 
 		for _, context := range contexts {
@@ -142,6 +148,11 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 			}
 			results = append(results, result)
 		}
+	}
+
+	// TODO: Exclude the current note when asking for related notes to tags
+	if !matchedNote && len(relatedTags) > 0 {
+		results = append(results, book.SearchByTags(relatedTags...)...)
 	}
 
 	return results
