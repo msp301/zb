@@ -135,7 +135,6 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 				contexts = matched
 				matchedNote = true
 			}
-			break
 		case string:
 			relatedTags = append(relatedTags, val)
 		}
