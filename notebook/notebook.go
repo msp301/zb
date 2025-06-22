@@ -2,9 +2,7 @@ package notebook
 
 import (
 	"fmt"
-	"io/fs"
 	"log"
-	"path/filepath"
 	"sort"
 
 	"github.com/msp301/graph"
@@ -22,41 +20,33 @@ type Notebook struct {
 
 type FilterFunc func(note parser.Note) bool
 
-func New() *Notebook {
-	return &Notebook{
+func New(files []string) *Notebook {
+	book := &Notebook{
 		Invalid: map[uint64]parser.Note{},
 		Notes:   graph.New(),
 		tags:    map[string]uint64{},
-		files:   []string{},
+		files:   files,
 	}
+	book.read()
+
+	return book
 }
 
 func (book *Notebook) AddFilter(filter FilterFunc) {
 	book.Filters = append(book.Filters, filter)
 }
 
-func (book *Notebook) Load(dir string) error {
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+func (book *Notebook) read() []parser.Note {
+	var filteredNotes []parser.Note
+
+	for _, path := range book.files {
+		fileId, err := util.FileId(path)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
 
-		fileId, err := util.FileId(d.Name())
-		if err != nil {
-			return nil
-		}
-
 		book.Notes.Add(fileId, "note", nil)
-		book.files = append(book.files, path)
-
-		return nil
-	})
-
-	return err
-}
-
-func (book *Notebook) Read() []parser.Note {
-	var filteredNotes []parser.Note
+	}
 
 	for _, path := range book.files {
 		fileNotes := parser.Parse(path)
