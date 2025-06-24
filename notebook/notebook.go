@@ -36,16 +36,21 @@ func (book *Notebook) AddFilter(filter FilterFunc) {
 func (book *Notebook) Read(paths ...string) []parser.Note {
 	var filteredNotes []parser.Note
 
+	var notePaths []string
 	for _, path := range paths {
 		fileId, err := util.FileId(path)
-		if book.Strict && err != nil {
-			log.Fatalf(err.Error())
+		if err != nil {
+			if book.Strict {
+				log.Fatalf(err.Error())
+			}
+			continue
 		}
 
 		book.Notes.Add(fileId, "note", nil)
+		notePaths = append(notePaths, path)
 	}
 
-	for _, path := range paths {
+	for _, path := range notePaths {
 		fileNotes := parser.Parse(path)
 
 	NOTE:
