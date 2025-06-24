@@ -12,7 +12,9 @@ func Read(paths []string) (error, *notebook.Notebook) {
 		return err, nil
 	}
 
-	book := notebook.New(loader.Files)
+	book := notebook.New()
+	book.Strict = true
+	book.Read(loader.Files...)
 
 	return nil, book
 }

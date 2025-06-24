@@ -11,44 +11,41 @@ import (
 )
 
 type Notebook struct {
-	files   []string
 	Filters []FilterFunc
 	Invalid map[uint64]parser.Note
 	Notes   *graph.Graph
+	Strict  bool
 	tags    map[string]uint64
 }
 
 type FilterFunc func(note parser.Note) bool
 
-func New(files []string) *Notebook {
-	book := &Notebook{
+func New() *Notebook {
+	return &Notebook{
 		Invalid: map[uint64]parser.Note{},
 		Notes:   graph.New(),
+		Strict:  false,
 		tags:    map[string]uint64{},
-		files:   files,
 	}
-	book.read()
-
-	return book
 }
 
 func (book *Notebook) AddFilter(filter FilterFunc) {
 	book.Filters = append(book.Filters, filter)
 }
 
-func (book *Notebook) read() []parser.Note {
+func (book *Notebook) Read(paths ...string) []parser.Note {
 	var filteredNotes []parser.Note
 
-	for _, path := range book.files {
+	for _, path := range paths {
 		fileId, err := util.FileId(path)
-		if err != nil {
+		if book.Strict && err != nil {
 			log.Fatalf(err.Error())
 		}
 
 		book.Notes.Add(fileId, "note", nil)
 	}
 
-	for _, path := range book.files {
+	for _, path := range paths {
 		fileNotes := parser.Parse(path)
 
 	NOTE:
