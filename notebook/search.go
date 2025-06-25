@@ -2,7 +2,7 @@ package notebook
 
 import (
 	"github.com/msp301/graph"
-	"github.com/msp301/zb/parser"
+	"github.com/msp301/zb"
 	"github.com/msp301/zb/util"
 	"strings"
 )
@@ -15,7 +15,7 @@ func (book *Notebook) Search(query ...string) []Result {
 		matched := false
 		startLine := 0
 		switch val := vertex.Value.(type) {
-		case parser.Note:
+		case zb.Note:
 			content := val.Content
 			paragraphs := extractParagraphs(content)
 			startLine = val.Start

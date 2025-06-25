@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/msp301/zb"
 	"log"
 
 	"github.com/msp301/graph"
 	"github.com/msp301/zb/bookshelf"
 	"github.com/msp301/zb/notebook"
 	"github.com/msp301/zb/pager"
-	"github.com/msp301/zb/parser"
 	"github.com/spf13/viper"
 )
 
@@ -27,7 +27,7 @@ func book() *notebook.Notebook {
 func render(vertices []graph.Vertex) {
 	for _, vertex := range vertices {
 		switch val := vertex.Value.(type) {
-		case parser.Note:
+		case zb.Note:
 			fmt.Printf("%s - %s\n", val.File, val.Title)
 		case string:
 			fmt.Printf("%s\n", val)
@@ -48,7 +48,7 @@ func renderResults(results []notebook.Result) {
 			switch val := result.Value.(type) {
 			case graph.Vertex:
 				switch vertex := val.Value.(type) {
-				case parser.Note:
+				case zb.Note:
 					if len(result.Context) > 0 {
 						pager.Writef("%s:%d: - %s\n", vertex.File, result.Line, result.Context)
 					} else {

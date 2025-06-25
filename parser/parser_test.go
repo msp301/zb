@@ -1,13 +1,14 @@
 package parser
 
 import (
+	"github.com/msp301/zb"
 	"reflect"
 	"testing"
 )
 
 func TestParseValidNote(t *testing.T) {
 	got := Parse("examples/valid_note.md")
-	want := []Note{
+	want := []zb.Note{
 		{
 			Content: "This is a test file. #test\nWith a single note :)\n\n\\#hashtag\n\nLinks: [[202203311822]], [[202203310800]]",
 			File:    "examples/valid_note.md",
@@ -25,7 +26,7 @@ func TestParseValidNote(t *testing.T) {
 
 func TestParseWikilinks(t *testing.T) {
 	got := Parse("examples/wikilinks.md")
-	want := []Note{
+	want := []zb.Note{
 		{
 			Content: "# Test wikilinks\n\nTest note with different [[202405011240|link styles]]. Another link ([[202503021105]]\n\nand [[202203310800]] but not [[foobar]] or [202501012210]",
 			File:    "examples/wikilinks.md",
@@ -43,7 +44,7 @@ func TestParseWikilinks(t *testing.T) {
 
 func TestParseCRLFNote(t *testing.T) {
 	got := Parse("examples/windows_note.md")
-	want := []Note{
+	want := []zb.Note{
 		{
 			Content: "Test Windows line endings.",
 			File:    "examples/windows_note.md",
@@ -61,7 +62,7 @@ func TestParseCRLFNote(t *testing.T) {
 
 func TestParseDuplicateTags(t *testing.T) {
 	got := Parse("examples/tags.md")
-	want := []Note{
+	want := []zb.Note{
 		{
 			Content: "# Test tags mentioned multiple times\n\nThis is a #test file. #test\nWith #several #tags mentioned\n#several times.\n\n## Subheading\n\n#Order is preserved.\nThis is a tag in quotes \"#1-1\"\n#C# and #C++ are valid tags.\nTag in a URL: http://example.com/#foo\n\n\\#ignored",
 			File:    "examples/tags.md",
@@ -79,7 +80,7 @@ func TestParseDuplicateTags(t *testing.T) {
 
 func TestParseMultiNoteFile(t *testing.T) {
 	got := Parse("examples/multi_note.md")
-	want := []Note{
+	want := []zb.Note{
 		{
 			Content: "# First note\n\ntalk about some #thing",
 			File:    "examples/multi_note.md",

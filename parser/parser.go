@@ -3,6 +3,7 @@ package parser
 import (
 	"bufio"
 	"fmt"
+	"github.com/msp301/zb"
 	"os"
 	"regexp"
 	"strconv"
@@ -11,7 +12,7 @@ import (
 	"github.com/msp301/zb/util"
 )
 
-func Parse(filepath string) []Note {
+func Parse(filepath string) []zb.Note {
 	fileReader, err := os.Open(filepath)
 	defer fileReader.Close()
 
@@ -23,7 +24,7 @@ func Parse(filepath string) []Note {
 
 	fileScanner.Split(bufio.ScanLines)
 
-	var notes []Note
+	var notes []zb.Note
 
 	var content string
 	var contentStart int
@@ -46,7 +47,7 @@ func Parse(filepath string) []Note {
 
 		isNoteDivider, _ := regexp.Match(`^\s*-{3,}`, fileScanner.Bytes())
 		if isNoteDivider {
-			note := Note{
+			note := zb.Note{
 				Content: strings.TrimSpace(content),
 				Start:   contentStart,
 				File:    filepath,
@@ -108,7 +109,7 @@ func Parse(filepath string) []Note {
 		}
 	}
 
-	note := Note{
+	note := zb.Note{
 		Content: strings.TrimSpace(content),
 		Start:   contentStart,
 		File:    filepath,

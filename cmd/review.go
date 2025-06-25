@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/msp301/graph"
-	"github.com/msp301/zb/parser"
+	"github.com/msp301/zb"
 	"github.com/spf13/cobra"
 	"math/rand"
 )
@@ -28,7 +28,7 @@ var reviewCmd = &cobra.Command{
 				break
 			}
 			switch val := vertex.Value.(type) {
-			case parser.Note:
+			case zb.Note:
 				fmt.Printf("%s - %s\n", val.File, val.Title)
 				count++
 			}

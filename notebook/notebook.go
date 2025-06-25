@@ -2,6 +2,7 @@ package notebook
 
 import (
 	"fmt"
+	"github.com/msp301/zb"
 	"log"
 	"sort"
 
@@ -12,17 +13,17 @@ import (
 
 type Notebook struct {
 	Filters []FilterFunc
-	Invalid map[uint64]parser.Note
+	Invalid map[uint64]zb.Note
 	Notes   *graph.Graph
 	Strict  bool
 	tags    map[string]uint64
 }
 
-type FilterFunc func(note parser.Note) bool
+type FilterFunc func(note zb.Note) bool
 
 func New() *Notebook {
 	return &Notebook{
-		Invalid: map[uint64]parser.Note{},
+		Invalid: map[uint64]zb.Note{},
 		Notes:   graph.New(),
 		Strict:  false,
 		tags:    map[string]uint64{},
@@ -33,8 +34,8 @@ func (book *Notebook) AddFilter(filter FilterFunc) {
 	book.Filters = append(book.Filters, filter)
 }
 
-func (book *Notebook) Read(paths ...string) []parser.Note {
-	var filteredNotes []parser.Note
+func (book *Notebook) Read(paths ...string) []zb.Note {
+	var filteredNotes []zb.Note
 
 	var notePaths []string
 	for _, path := range paths {
@@ -120,7 +121,7 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 		startLine := 0
 
 		switch val := vertex.Value.(type) {
-		case parser.Note:
+		case zb.Note:
 			startLine = val.Start
 			matched, ok := util.Context(val.Content, fmt.Sprint(id))
 			if ok {
@@ -171,7 +172,7 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 		startLine := 0
 
 		switch val := vertex.Value.(type) {
-		case parser.Note:
+		case zb.Note:
 			startLine = val.Start
 			matchedTag := ""
 			for _, tagVertex := range tagVerticesSlice {

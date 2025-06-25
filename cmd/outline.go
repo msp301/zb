@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"github.com/msp301/zb"
 	"log"
 	"strings"
 
 	"github.com/msp301/graph"
 	"github.com/msp301/zb/pager"
-	"github.com/msp301/zb/parser"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ var outlineCmd = &cobra.Command{
 			book().Notes.Walk(func(vertex graph.Vertex, depth int) bool {
 				indent := strings.Repeat("\t", depth)
 				switch val := vertex.Value.(type) {
-				case parser.Note:
+				case zb.Note:
 					_, err := pager.Writef("%s%s - %s\n", indent, val.File, val.Title)
 					if err != nil {
 						log.Fatal(err)
