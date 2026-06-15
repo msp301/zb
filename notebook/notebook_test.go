@@ -6,6 +6,31 @@ import (
 	"testing"
 )
 
+func TestMatchedTags(t *testing.T) {
+	g := graph.New()
+	g.Add(1, "note", nil)
+	g.Add(2, "note", nil)
+	g.Add(3, "note", nil)
+
+	g.Add(4, "tag", "#test")
+	g.Add(5, "tag", "#LLM")
+	g.Add(6, "tag", "#LargeLanguageModel")
+	g.Add(7, "tag", "#LargeLanguageModels")
+
+	book := &Notebook{Notes: g}
+
+	got := book.MatchedTags("llm")
+	want := []matchedTag{
+		{Distance: 1, Tag: "#LLM", Vertex: graph.Vertex{Id: 5, Label: "tag", Value: "#LLM"}},
+		{Distance: 16, Tag: "#LargeLanguageModel", Vertex: graph.Vertex{Id: 6, Label: "tag", Value: "#LargeLanguageModel"}},
+		{Distance: 17, Tag: "#LargeLanguageModels", Vertex: graph.Vertex{Id: 7, Label: "tag", Value: "#LargeLanguageModels"}},
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Expected: %+v\nGot: %+v", want, got)
+	}
+}
+
 func TestSearchByTag(t *testing.T) {
 	g := graph.New()
 	g.Add(1, "note", nil)
