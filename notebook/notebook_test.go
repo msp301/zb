@@ -24,3 +24,28 @@ func TestSearchByTag(t *testing.T) {
 		t.Fatalf("Expected: %+v\nGot: %+v", want, got)
 	}
 }
+
+func TestSearchByTags_PrioritisesMatches(t *testing.T) {
+	g := graph.New()
+	g.Add(1, "note", nil)
+	g.Add(2, "note", nil)
+	g.Add(3, "note", nil)
+
+	g.Add(4, "tag", "#test")
+	g.Add(5, "tag", "#LLM")
+	g.Add(6, "tag", "#LargeLanguageModel")
+	g.Add(7, "tag", "#LargeLanguageModels")
+
+	g.Edge(3, 4, "tag")
+	g.Edge(3, 4, "tag")
+	g.Edge(3, 7, "tag")
+
+	book := &Notebook{Notes: g}
+
+	got := book.SearchByTags("test", "llm")
+	want := []Result{{Line: -1, Value: graph.Vertex{Id: 7, Label: "note"}}}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Expected: %+v\nGot: %+v", want, got)
+	}
+}
