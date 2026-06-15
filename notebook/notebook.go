@@ -2,9 +2,10 @@ package notebook
 
 import (
 	"fmt"
-	"github.com/msp301/zb"
 	"log"
 	"sort"
+
+	"github.com/msp301/zb"
 
 	"github.com/msp301/graph"
 	"github.com/msp301/zb/parser"
@@ -166,7 +167,7 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 	var results []Result
 
 	tagVerticesSlice := book.MatchedTags(searchTags...)
-	intersection := book.TagIntersection(tagVerticesSlice)
+	intersection := book.TagIntersection(tagVerticesSlice, len(searchTags))
 	for _, vertex := range intersection {
 		context := []util.ContextMatch{{Text: "", Line: 0}}
 		startLine := 0
@@ -282,27 +283,31 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 		}
 	})
 
-	if len(tagVerticesSlice) > len(searchTags) {
-		tagVerticesSlice = tagVerticesSlice[:len(searchTags)]
-	}
-
 	return tagVerticesSlice
 }
 
-func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
+func (book *Notebook) TagIntersection(matchedTags []matchedTag, requiredConnections int) []graph.Vertex {
 	var intersection = make(map[uint64]graph.Vertex)
 
 	if len(matchedTags) == 0 {
 		return nil
 	}
 
-	var mostConnectedVertex = matchedTags[0]
-VERTEX:
-	for vertexId := range book.Notes.Adjacency[mostConnectedVertex.Vertex.Id] {
-		for _, tagVertex := range matchedTags[1:] {
-			if !book.Notes.IsEdge(tagVertex.Vertex.Id, vertexId) {
-				continue VERTEX
+	var adjUnion = make(map[uint64]int)
+	for _, matchedTag := range matchedTags {
+		for vertexId := range book.Notes.Adjacency[matchedTag.Vertex.Id] {
+			_, ok := adjUnion[vertexId]
+			if !ok {
+				adjUnion[vertexId] = 0
 			}
+			adjUnion[vertexId]++
+		}
+	}
+
+VERTEX:
+	for vertexId, connections := range adjUnion {
+		if connections != requiredConnections {
+			continue VERTEX
 		}
 		intersection[vertexId] = book.Notes.Vertices[vertexId]
 	}
