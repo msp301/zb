@@ -22,9 +22,9 @@ func TestMatchedTags(t *testing.T) {
 
 	got := book.MatchedTags("llm")
 	want := []matchedTag{
-		{Distance: 1, Tag: "#LLM", Vertex: graph.Vertex{Id: 5, Label: "tag", Value: "#LLM"}},
-		{Distance: 16, Tag: "#LargeLanguageModel", Vertex: graph.Vertex{Id: 6, Label: "tag", Value: "#LargeLanguageModel"}},
-		{Distance: 17, Tag: "#LargeLanguageModels", Vertex: graph.Vertex{Id: 7, Label: "tag", Value: "#LargeLanguageModels"}},
+		{Term: "llm", Distance: 1, Tag: "#LLM", Vertex: graph.Vertex{Id: 5, Label: "tag", Value: "#LLM"}},
+		{Term: "llm", Distance: 16, Tag: "#LargeLanguageModel", Vertex: graph.Vertex{Id: 6, Label: "tag", Value: "#LargeLanguageModel"}},
+		{Term: "llm", Distance: 17, Tag: "#LargeLanguageModels", Vertex: graph.Vertex{Id: 7, Label: "tag", Value: "#LargeLanguageModels"}},
 	}
 
 	if !reflect.DeepEqual(got, want) {
@@ -93,14 +93,43 @@ func TestTagIntersection(t *testing.T) {
 
 	book := &Notebook{Notes: g}
 	tags := []matchedTag{
-		{Distance: 1, Tag: "#test", Vertex: graph.Vertex{Id: 4, Label: "tag", Value: "#test"}},
-		{Distance: 1, Tag: "#LLM", Vertex: graph.Vertex{Id: 5, Label: "tag", Value: "#LLM"}},
-		{Distance: 16, Tag: "#LargeLanguageModel", Vertex: graph.Vertex{Id: 6, Label: "tag", Value: "#LargeLanguageModel"}},
-		{Distance: 17, Tag: "#LargeLanguageModels", Vertex: graph.Vertex{Id: 7, Label: "tag", Value: "#LargeLanguageModels"}},
+		{Term: "test", Distance: 1, Tag: "#test", Vertex: graph.Vertex{Id: 4, Label: "tag", Value: "#test"}},
+		{Term: "llm", Distance: 1, Tag: "#LLM", Vertex: graph.Vertex{Id: 5, Label: "tag", Value: "#LLM"}},
+		{Term: "llm", Distance: 16, Tag: "#LargeLanguageModel", Vertex: graph.Vertex{Id: 6, Label: "tag", Value: "#LargeLanguageModel"}},
+		{Term: "llm", Distance: 17, Tag: "#LargeLanguageModels", Vertex: graph.Vertex{Id: 7, Label: "tag", Value: "#LargeLanguageModels"}},
 	}
 
-	got := book.TagIntersection(tags, 2)
+	got := book.TagIntersection(tags)
 	want := []graph.Vertex{{Id: 3, Label: "note"}}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Expected: %+v\nGot: %+v", want, got)
+	}
+}
+
+func TestTagIntersection_DoesNotCountSameSearchTermTwice(t *testing.T) {
+	g := graph.New()
+	g.Add(1, "note", nil) // has #golang + #gopher (both match "go", no "web")
+	g.Add(2, "note", nil) // has #golang + #web (correct match)
+
+	g.Add(3, "tag", "#golang")
+	g.Add(4, "tag", "#gopher")
+	g.Add(5, "tag", "#web")
+
+	g.Edge(1, 3, "tag")
+	g.Edge(1, 4, "tag")
+	g.Edge(2, 3, "tag")
+	g.Edge(2, 5, "tag")
+
+	book := &Notebook{Notes: g}
+	tags := []matchedTag{
+		{Term: "go", Distance: 1, Tag: "#golang", Vertex: graph.Vertex{Id: 3, Label: "tag", Value: "#golang"}},
+		{Term: "go", Distance: 2, Tag: "#gopher", Vertex: graph.Vertex{Id: 4, Label: "tag", Value: "#gopher"}},
+		{Term: "web", Distance: 1, Tag: "#web", Vertex: graph.Vertex{Id: 5, Label: "tag", Value: "#web"}},
+	}
+
+	got := book.TagIntersection(tags)
+	want := []graph.Vertex{{Id: 2, Label: "note"}}
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("Expected: %+v\nGot: %+v", want, got)

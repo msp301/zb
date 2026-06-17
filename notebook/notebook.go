@@ -158,6 +158,7 @@ type Result struct {
 }
 
 type matchedTag struct {
+	Term     string
 	Distance int
 	Tag      string
 	Vertex   graph.Vertex
@@ -167,7 +168,7 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 	var results []Result
 
 	tagVerticesSlice := book.MatchedTags(searchTags...)
-	intersection := book.TagIntersection(tagVerticesSlice, len(searchTags))
+	intersection := book.TagIntersection(tagVerticesSlice)
 	for _, vertex := range intersection {
 		context := []util.ContextMatch{{Text: "", Line: 0}}
 		startLine := 0
@@ -258,6 +259,7 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 		for _, searchTag := range searchTags {
 			if util.Matches(searchTag, tag) {
 				tagVertices[vertex.Id] = matchedTag{
+					Term:     searchTag,
 					Distance: util.Distance(searchTag, tag),
 					Tag:      tag,
 					Vertex:   vertex,
@@ -286,28 +288,38 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 	return tagVerticesSlice
 }
 
-func (book *Notebook) TagIntersection(matchedTags []matchedTag, requiredConnections int) []graph.Vertex {
+func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
 	var intersection = make(map[uint64]graph.Vertex)
 
 	if len(matchedTags) == 0 {
 		return nil
 	}
 
-	var adjUnion = make(map[uint64]int)
+	var matchedTerms = make(map[string]matchedTag)
+	var adjUnion = make(map[uint64]bool)
 	for _, matchedTag := range matchedTags {
-		for vertexId := range book.Notes.Adjacency[matchedTag.Vertex.Id] {
-			_, ok := adjUnion[vertexId]
-			if !ok {
-				adjUnion[vertexId] = 0
-			}
-			adjUnion[vertexId]++
+		relatedVertices, ok := book.Notes.Adjacency[matchedTag.Vertex.Id]
+		if !ok || len(relatedVertices) == 0 {
+			continue
+		}
+
+		if _, seen := matchedTerms[matchedTag.Term]; seen {
+			continue
+		}
+
+		matchedTerms[matchedTag.Term] = matchedTag
+
+		for vertexId := range relatedVertices {
+			adjUnion[vertexId] = true
 		}
 	}
 
 VERTEX:
-	for vertexId, connections := range adjUnion {
-		if connections != requiredConnections {
-			continue VERTEX
+	for vertexId := range adjUnion {
+		for _, matchedTag := range matchedTerms {
+			if !book.Notes.IsEdge(vertexId, matchedTag.Vertex.Id) {
+				continue VERTEX
+			}
 		}
 		intersection[vertexId] = book.Notes.Vertices[vertexId]
 	}
