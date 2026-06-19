@@ -107,6 +107,34 @@ func TestTagIntersection(t *testing.T) {
 	}
 }
 
+func TestTagIntersection_MatchesNoteWithSecondClosestTagForTerm(t *testing.T) {
+	g := graph.New()
+	g.Add(1, "note", nil)
+	g.Add(2, "note", nil)
+
+	g.Add(3, "tag", "#foo")
+	g.Add(4, "tag", "#bar")
+	g.Add(5, "tag", "#foobar")
+
+	g.Edge(1, 3, "tag")
+	g.Edge(1, 5, "tag")
+	g.Edge(2, 4, "tag")
+
+	book := &Notebook{Notes: g}
+	tags := []matchedTag{
+		{Term: "foo", Distance: 1, Tag: "#foo", Vertex: graph.Vertex{Id: 3, Label: "tag", Value: "#foo"}},
+		{Term: "bar", Distance: 1, Tag: "#bar", Vertex: graph.Vertex{Id: 4, Label: "tag", Value: "#bar"}},
+		{Term: "bar", Distance: 4, Tag: "#foobar", Vertex: graph.Vertex{Id: 5, Label: "tag", Value: "#foobar"}},
+	}
+
+	got := book.TagIntersection(tags)
+	want := []graph.Vertex{{Id: 1, Label: "note"}}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Expected: %+v\nGot: %+v", want, got)
+	}
+}
+
 func TestTagIntersection_DoesNotCountSameSearchTermTwice(t *testing.T) {
 	g := graph.New()
 	g.Add(1, "note", nil) // has #golang + #gopher (both match "go", no "web")
