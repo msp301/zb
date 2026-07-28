@@ -289,52 +289,44 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 }
 
 func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
-	var intersection = make(map[uint64]graph.Vertex)
-
-	numMatchedTags := len(matchedTags)
-	if numMatchedTags == 0 {
+	if len(matchedTags) == 0 {
 		return nil
 	}
 
-	// TODO: Need to loop through the matchedTags of the matched terms
-	// and find the first combination that all share the same vertex.
-	// Should prefer the matchedTag that is closest to the provided terms
-
-	var termAdj = make(map[string][]matchedTag)
-	for _, matchedTag := range matchedTags[1:] {
-		termAdj[matchedTag.Term] = append(termAdj[matchedTag.Term], matchedTag)
+	// Group matched tags by their search term (input is already sorted closest-first per term).
+	termTags := make(map[string][]matchedTag)
+	for _, mt := range matchedTags {
+		termTags[mt.Term] = append(termTags[mt.Term], mt)
 	}
 
-	firstTag := matchedTags[0]
-	var matchedTerms = make(map[string]matchedTag)
-	matchedTerms[firstTag.Term] = firstTag
+	// Collect every vertex adjacent to any matched tag as a candidate.
+	candidates := make(map[uint64]bool)
+	for _, mt := range matchedTags {
+		for vertexId := range book.Notes.Adjacency[mt.Vertex.Id] {
+			candidates[vertexId] = true
+		}
+	}
 
-	for vertexId := range book.Notes.Adjacency[firstTag.Vertex.Id] {
-		for otherTerm, tags := range termAdj {
-			for _, tag := range tags {
-				if book.Notes.IsEdge(tag.Vertex.Id, vertexId) {
-					matchedTerms[otherTerm] = tag
+	// A candidate qualifies if each distinct search term has at least one adjacent tag.
+	intersection := make(map[uint64]graph.Vertex)
+	for vertexId := range candidates {
+		qualifies := true
+		for _, tags := range termTags {
+			termMatched := false
+			for _, mt := range tags {
+				if book.Notes.IsEdge(vertexId, mt.Vertex.Id) {
+					termMatched = true
+					break
 				}
 			}
-		}
-	}
-
-	var adjUnion = make(map[uint64]bool)
-	for _, matchedTag := range matchedTerms {
-		relatedVertices := book.Notes.Adjacency[matchedTag.Vertex.Id]
-		for vertexId := range relatedVertices {
-			adjUnion[vertexId] = true
-		}
-	}
-
-VERTEX:
-	for vertexId := range adjUnion {
-		for _, matchedTag := range matchedTerms {
-			if !book.Notes.IsEdge(vertexId, matchedTag.Vertex.Id) {
-				continue VERTEX
+			if !termMatched {
+				qualifies = false
+				break
 			}
 		}
-		intersection[vertexId] = book.Notes.Vertices[vertexId]
+		if qualifies {
+			intersection[vertexId] = book.Notes.Vertices[vertexId]
+		}
 	}
 
 	var sortedVertices []uint64
