@@ -291,24 +291,37 @@ func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
 func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
 	var intersection = make(map[uint64]graph.Vertex)
 
-	if len(matchedTags) == 0 {
+	numMatchedTags := len(matchedTags)
+	if numMatchedTags == 0 {
 		return nil
 	}
 
+	// TODO: Need to loop through the matchedTags of the matched terms
+	// and find the first combination that all share the same vertex.
+	// Should prefer the matchedTag that is closest to the provided terms
+
+	var termAdj = make(map[string][]matchedTag)
+	for _, matchedTag := range matchedTags[1:] {
+		termAdj[matchedTag.Term] = append(termAdj[matchedTag.Term], matchedTag)
+	}
+
+	firstTag := matchedTags[0]
 	var matchedTerms = make(map[string]matchedTag)
+	matchedTerms[firstTag.Term] = firstTag
+
+	for vertexId := range book.Notes.Adjacency[firstTag.Vertex.Id] {
+		for otherTerm, tags := range termAdj {
+			for _, tag := range tags {
+				if book.Notes.IsEdge(tag.Vertex.Id, vertexId) {
+					matchedTerms[otherTerm] = tag
+				}
+			}
+		}
+	}
+
 	var adjUnion = make(map[uint64]bool)
-	for _, matchedTag := range matchedTags {
-		relatedVertices, ok := book.Notes.Adjacency[matchedTag.Vertex.Id]
-		if !ok || len(relatedVertices) == 0 {
-			continue
-		}
-
-		if _, seen := matchedTerms[matchedTag.Term]; seen {
-			continue
-		}
-
-		matchedTerms[matchedTag.Term] = matchedTag
-
+	for _, matchedTag := range matchedTerms {
+		relatedVertices := book.Notes.Adjacency[matchedTag.Vertex.Id]
 		for vertexId := range relatedVertices {
 			adjUnion[vertexId] = true
 		}
