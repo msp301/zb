@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/msp301/zb/util"
@@ -18,7 +17,7 @@ var noteCmd = &cobra.Command{
 		if err != nil {
 			id, err = util.FileId(note)
 			if err != nil {
-				fmt.Println(err)
+				fail("%s", err)
 			}
 		}
 		renderResults(book().SearchRelated(id))
