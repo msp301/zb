@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/msp301/zb/editor"
 	"github.com/spf13/viper"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -40,7 +42,7 @@ var newCmd = &cobra.Command{
 			log.Fatalf("Error creating note: %s", err)
 		}
 
-		fullPath, err := filepath.Abs(note.Name())
+		fullPath, err := filepath.Abs(note)
 		if err != nil {
 			log.Fatalf("Error getting absolute path: %s", err)
 		}
@@ -61,26 +63,26 @@ func init() {
 	rootCmd.AddCommand(newCmd)
 }
 
-func createNote(dir string) (*os.File, error) {
-	timestamp := time.Now().Format("200601021504")
+func createNote(dir string) (string, error) {
+	for created := time.Now(); ; created = created.Add(time.Minute) {
+		timestamp := created.Format("200601021504")
+		path := filepath.Join(dir, timestamp+".md")
 
-	note, err := os.Create(filepath.Join(dir, timestamp+".md"))
-	if err != nil {
-		return nil, err
-	}
-	defer func(note *os.File) {
-		err := note.Close()
-		if err != nil {
-			log.Fatalf("Error closing note: %s", err)
+		note, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+		if errors.Is(err, fs.ErrExist) {
+			continue
 		}
-	}(note)
+		if err != nil {
+			return "", err
+		}
 
-	_, err = note.WriteString(timestamp)
-	if err != nil {
-		return nil, err
+		if _, err = note.WriteString(timestamp); err != nil {
+			note.Close()
+			return "", err
+		}
+
+		return path, note.Close()
 	}
-
-	return note, nil
 }
 
 func aliasIndex(alias string) int {
