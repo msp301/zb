@@ -10,13 +10,14 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 )
 
 var newCmd = &cobra.Command{
-	Use:   "new",
+	Use:   "new [ALIAS]",
 	Short: "Create a new note",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -26,10 +27,11 @@ var newCmd = &cobra.Command{
 		if len(args) > 0 {
 			bookAlias := args[0]
 
-			aliasIndex := aliasIndex(bookAlias)
-			if aliasIndex != -1 {
-				bookDir = dirs[aliasIndex]
+			index := aliasIndex(bookAlias)
+			if index == -1 || index >= len(dirs) {
+				fail("Unknown notebook alias '%s'. Known aliases: %s", bookAlias, strings.Join(knownAliases(), ", "))
 			}
+			bookDir = dirs[index]
 		}
 
 		notePath := filepath.Join(bookDir, strconv.Itoa(time.Now().Year()))
@@ -83,13 +85,4 @@ func createNote(dir string) (string, error) {
 
 		return path, note.Close()
 	}
-}
-
-func aliasIndex(alias string) int {
-	for i, a := range viper.GetStringSlice("alias") {
-		if a == alias {
-			return i
-		}
-	}
-	return -1
 }

@@ -26,6 +26,28 @@ func bookDirs() []string {
 	return dirs
 }
 
+func aliasIndex(alias string) int {
+	if alias == "" {
+		return -1
+	}
+	for i, a := range viper.GetStringSlice("alias") {
+		if a == alias {
+			return i
+		}
+	}
+	return -1
+}
+
+func knownAliases() []string {
+	var aliases []string
+	for _, alias := range viper.GetStringSlice("alias") {
+		if alias != "" {
+			aliases = append(aliases, alias)
+		}
+	}
+	return aliases
+}
+
 func book() *notebook.Notebook {
 	err, book := bookshelf.Read(bookDirs())
 	if err != nil {
