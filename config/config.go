@@ -27,7 +27,7 @@ func init() {
 
 func IsConfigOption(key string) bool {
 	switch key {
-	case "alias", "directory", "editor":
+	case "alias", "directory", "editor", "pager":
 		return true
 	}
 
