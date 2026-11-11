@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"sync"
 
+	"github.com/msp301/zb/util"
 	"github.com/spf13/viper"
 )
 
@@ -39,7 +40,7 @@ func Open() (*Pager, error) {
 	if pagerCmd == "" {
 		pager.pipe = os.Stdout
 	} else {
-		pager.command = exec.Command(pagerCmd)
+		pager.command = util.Command(pagerCmd)
 		pager.command.Stdout = os.Stdout
 		pager.command.Stderr = os.Stderr
 

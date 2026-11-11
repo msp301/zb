@@ -1,9 +1,11 @@
 package editor
 
 import (
-	"github.com/spf13/viper"
+	"errors"
 	"os"
-	"os/exec"
+
+	"github.com/msp301/zb/util"
+	"github.com/spf13/viper"
 )
 
 func FindEditor() string {
@@ -22,21 +24,14 @@ func FindEditor() string {
 
 func Open(path string) error {
 	editor := FindEditor()
+	if editor == "" {
+		return errors.New("no editor configured, set $EDITOR or run 'zb config editor <program>'")
+	}
 
-	command := exec.Command(editor, path)
+	command := util.Command(editor, path)
 	command.Stdin = os.Stdin
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
 
-	err := command.Start()
-	if err != nil {
-		return err
-	}
-
-	err = command.Wait()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return command.Run()
 }

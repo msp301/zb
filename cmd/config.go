@@ -29,7 +29,9 @@ var configCmd = &cobra.Command{
 		}
 
 		if edit, _ := cmd.Flags().GetBool("edit"); edit {
-			editor.Open(configFile)
+			if err := editor.Open(configFile); err != nil {
+				fail("Editor error: %s", err)
+			}
 			return
 		}
 
