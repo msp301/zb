@@ -24,7 +24,7 @@ var reviewCmd = &cobra.Command{
 		}
 		count := 0
 		for _, vertex := range shuffledNotes {
-			if count > num {
+			if count >= num {
 				break
 			}
 			switch val := vertex.Value.(type) {
