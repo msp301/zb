@@ -35,9 +35,12 @@ var checkCmd = &cobra.Command{
 			os.Exit(status)
 		}
 
-		for _, note := range book().Invalid {
+		invalid := book().Invalid
+		for _, note := range invalid {
 			str, _ := json.Marshal(note)
 			fmt.Println(string(str))
+		}
+		if len(invalid) > 0 {
 			os.Exit(1)
 		}
 	},
