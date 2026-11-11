@@ -145,10 +145,20 @@ func (book *Notebook) SearchRelated(id uint64) []Result {
 
 	// TODO: Exclude the current note when asking for related notes to tags
 	if !matchedNote && len(relatedTags) > 0 {
-		results = append(results, book.SearchByTags(relatedTags...)...)
+		for _, result := range book.SearchByTags(relatedTags...) {
+			alreadyListed := book.isTagOfNote(result, id)
+			if !alreadyListed {
+				results = append(results, result)
+			}
+		}
 	}
 
 	return results
+}
+
+func (book *Notebook) isTagOfNote(result Result, noteId uint64) bool {
+	vertex, ok := result.Value.(graph.Vertex)
+	return ok && vertex.Label == "tag" && book.Notes.IsEdge(noteId, vertex.Id)
 }
 
 type Result struct {
@@ -168,7 +178,12 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 	var results []Result
 
 	tagVerticesSlice := book.MatchedTags(searchTags...)
-	intersection := book.TagIntersection(tagVerticesSlice)
+	if !everyTermMatchesATag(searchTags, tagVerticesSlice) {
+		return nil
+	}
+
+	notes := book.TagIntersection(tagVerticesSlice)
+	intersection := append(book.tagsOfNotes(notes), notes...)
 	for _, vertex := range intersection {
 		context := []util.ContextMatch{{Text: "", Line: 0}}
 		startLine := 0
@@ -200,6 +215,19 @@ func (book *Notebook) SearchByTags(searchTags ...string) []Result {
 	}
 
 	return results
+}
+
+func everyTermMatchesATag(searchTags []string, matchedTags []matchedTag) bool {
+	matchedTerms := make(map[string]bool)
+	for _, mt := range matchedTags {
+		matchedTerms[mt.Term] = true
+	}
+	for _, searchTag := range searchTags {
+		if !matchedTerms[searchTag] {
+			return false
+		}
+	}
+	return true
 }
 
 func (book *Notebook) Count() int {
@@ -252,13 +280,17 @@ func (book *Notebook) TagConnections(search string) []TagConnection {
 }
 
 func (book *Notebook) MatchedTags(searchTags ...string) []matchedTag {
-	tagVertices := make(map[uint64]matchedTag)
+	type termTag struct {
+		term  string
+		tagId uint64
+	}
+	tagVertices := make(map[termTag]matchedTag)
 	traversal := graph.Traversal(book.Notes)
 	for vertex := range traversal.V().HasLabel("tag").Iterate() {
 		tag := fmt.Sprint(vertex.Value)
 		for _, searchTag := range searchTags {
 			if util.Matches(searchTag, tag) {
-				tagVertices[vertex.Id] = matchedTag{
+				tagVertices[termTag{searchTag, vertex.Id}] = matchedTag{
 					Term:     searchTag,
 					Distance: util.Distance(searchTag, tag),
 					Tag:      tag,
@@ -299,11 +331,13 @@ func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
 		termTags[mt.Term] = append(termTags[mt.Term], mt)
 	}
 
-	// Collect every vertex adjacent to any matched tag as a candidate.
+	// Collect every note adjacent to any matched tag as a candidate.
 	candidates := make(map[uint64]bool)
 	for _, mt := range matchedTags {
 		for vertexId := range book.Notes.Adjacency[mt.Vertex.Id] {
-			candidates[vertexId] = true
+			if book.Notes.Vertices[vertexId].Label == "note" {
+				candidates[vertexId] = true
+			}
 		}
 	}
 
@@ -343,6 +377,28 @@ func (book *Notebook) TagIntersection(matchedTags []matchedTag) []graph.Vertex {
 	}
 
 	return sortedIntersection
+}
+
+func (book *Notebook) tagsOfNotes(notes []graph.Vertex) []graph.Vertex {
+	tags := make(map[uint64]graph.Vertex)
+	for _, note := range notes {
+		for vertexId := range book.Notes.Adjacency[note.Id] {
+			vertex := book.Notes.Vertices[vertexId]
+			if vertex.Label == "tag" {
+				tags[vertexId] = vertex
+			}
+		}
+	}
+
+	sortedTags := make([]graph.Vertex, 0, len(tags))
+	for _, tag := range tags {
+		sortedTags = append(sortedTags, tag)
+	}
+	sort.Slice(sortedTags, func(i, j int) bool {
+		return sortedTags[i].Id < sortedTags[j].Id
+	})
+
+	return sortedTags
 }
 
 func (book *Notebook) addTag(tag string) uint64 {
