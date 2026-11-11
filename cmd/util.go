@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/msp301/zb"
 	"log"
+	"os"
 
 	"github.com/msp301/graph"
 	"github.com/msp301/zb/bookshelf"
@@ -12,8 +13,17 @@ import (
 	"github.com/spf13/viper"
 )
 
+func fail(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	os.Exit(1)
+}
+
 func bookDirs() []string {
-	return viper.GetStringSlice("directory")
+	dirs := viper.GetStringSlice("directory")
+	if len(dirs) == 0 {
+		fail("No notebook configured. Run 'zb init' inside your notes directory or pass --directory.")
+	}
+	return dirs
 }
 
 func book() *notebook.Notebook {
