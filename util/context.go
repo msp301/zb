@@ -3,6 +3,7 @@ package util
 import (
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type ContextMatch struct {
@@ -16,6 +17,7 @@ var mdListEntryRegex = regexp.MustCompile(`^(\s*)(?:(?:\*|\+|-|\d+[.)])\s+)?([^\
 
 // cache contextRegex by input phrase
 var contextRegexCache = make(map[string]*regexp.Regexp)
+var contextRegexCacheLock sync.Mutex
 
 type ContextMatchFunc func(s string, phrase string) bool
 
@@ -73,6 +75,9 @@ func isMarkdownTable(line string) bool {
 }
 
 func contextRegex(phrase string) *regexp.Regexp {
+	contextRegexCacheLock.Lock()
+	defer contextRegexCacheLock.Unlock()
+
 	if contextRegexCache[phrase] == nil {
 		input := regexp.QuoteMeta(phrase)
 		contextRegexCache[phrase] = regexp.MustCompile(`(?i)(?:[^\n]\n?)*` + input + `(?:[^\n]\n?)*`)
