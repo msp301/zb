@@ -19,8 +19,13 @@ func (book *Notebook) Search(query ...string) []Result {
 			content := val.Content
 			paragraphs := extractParagraphs(content)
 			startLine = val.Start
+			paragraphLine := 0
 		PARAGRAPH:
-			for _, paragraph := range paragraphs {
+			for index, paragraph := range paragraphs {
+				if index > 0 {
+					paragraphLine += strings.Count(paragraphs[index-1], "\n") + 2
+				}
+
 				termsMatched := 0
 				for _, term := range query {
 					if util.ParagraphMatches(paragraph, term) {
@@ -35,6 +40,9 @@ func (book *Notebook) Search(query ...string) []Result {
 				for _, term := range query {
 					extracted, ok := util.ContextFold(paragraph, term)
 					if ok {
+						for i := range extracted {
+							extracted[i].Line += paragraphLine
+						}
 						context = append(context, extracted...)
 						matched = true
 						break
