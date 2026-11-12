@@ -182,22 +182,38 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) handleMouse(msg tea.MouseMsg) {
-	delta := 0
 	switch msg.Button {
 	case tea.MouseButtonWheelUp:
-		delta = -wheelStep
+		m.scrollPaneAt(msg.X, msg.Y, -wheelStep)
 	case tea.MouseButtonWheelDown:
-		delta = wheelStep
-	default:
-		return
+		m.scrollPaneAt(msg.X, msg.Y, wheelStep)
+	case tea.MouseButtonLeft:
+		if msg.Action == tea.MouseActionPress {
+			m.selectRowAt(msg.X, msg.Y)
+		}
 	}
+}
 
-	switch m.layout().paneAt(msg.X, msg.Y) {
+func (m *model) scrollPaneAt(x int, y int, delta int) {
+	switch m.layout().paneAt(x, y) {
 	case listPane:
 		m.scrollList(delta)
 	case previewPane:
 		m.preview.SetYOffset(m.preview.YOffset + delta)
 	}
+}
+
+func (m *model) selectRowAt(x int, y int) {
+	if m.layout().paneAt(x, y) != listPane {
+		return
+	}
+
+	index := m.listOffset + y - headerHeight
+	if index >= len(m.rows) || index == m.current().cursor {
+		return
+	}
+	m.current().cursor = index
+	m.showSelected()
 }
 
 func (m *model) scrollList(delta int) {

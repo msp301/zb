@@ -441,3 +441,45 @@ func TestWheelInStackedLayoutUsesThePaneUnderTheCursor(t *testing.T) {
 		t.Fatalf("expected only the preview to scroll, got list %d preview %d", m.listOffset, m.preview.YOffset)
 	}
 }
+
+func click(m *model, x int, y int) {
+	send(m, tea.MouseMsg{Action: tea.MouseActionPress, Button: tea.MouseButtonLeft, X: x, Y: y})
+}
+
+func TestClickingARowSelectsIt(t *testing.T) {
+	m := newTestModel(t, "")
+	want := m.rows[2].note
+
+	click(m, 5, 5)
+
+	if m.current().cursor != 2 {
+		t.Fatalf("expected the third row to be selected, got %d", m.current().cursor)
+	}
+	if !strings.Contains(m.preview.View(), want.Title) {
+		t.Fatalf("expected the preview to show %q", want.Title)
+	}
+}
+
+func TestClickingAScrolledListSelectsTheRowUnderTheCursor(t *testing.T) {
+	m := newTestModel(t, "")
+	send(m, tea.WindowSizeMsg{Width: 120, Height: 8})
+	wheel(m, tea.MouseButtonWheelDown, 5, 4)
+
+	click(m, 5, 6)
+
+	if m.current().cursor != 5 {
+		t.Fatalf("expected the last row to be selected, got %d", m.current().cursor)
+	}
+}
+
+func TestClickingOutsideTheRowsKeepsTheSelection(t *testing.T) {
+	m := newTestModel(t, "")
+
+	click(m, 5, 20)
+	click(m, 100, 5)
+	click(m, 5, 0)
+
+	if m.current().cursor != 0 {
+		t.Fatalf("expected the selection to stay on the first row, got %d", m.current().cursor)
+	}
+}
