@@ -8,17 +8,19 @@ import (
 
 var noiseRegex = regexp.MustCompile(`[^\s\w#.-]`)
 
+var uppercaseRegex = regexp.MustCompile("[A-Z]")
+
 func ParagraphMatches(content string, query string) bool {
 	content = noiseRegex.ReplaceAllString(content, " ")
 	tokens := strings.Fields(content)
+	hasUppercase := uppercaseRegex.MatchString(query)
 	for _, token := range tokens {
 		if len(query) > 3 && strings.HasPrefix(token, query) {
 			return true
 		}
 
 		var distance int
-		hasUppercase := regexp.MustCompile("[A-Z]")
-		if hasUppercase.MatchString(query) {
+		if hasUppercase {
 			distance = fuzzy.RankMatchNormalized(query, token)
 		} else {
 			distance = fuzzy.RankMatchNormalizedFold(query, token)
