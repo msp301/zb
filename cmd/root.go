@@ -36,7 +36,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", fmt.Sprintf("config file (default is %s)", config.GlobalConfigFile))
-	rootCmd.PersistentFlags().StringVar(&cfgEditor, "editor", editor.FindEditor(), "program to open notes with")
+	rootCmd.PersistentFlags().StringVar(&cfgEditor, "editor", editor.FindEditor(), "program to open notes with, may use {file} and {line} placeholders")
 	rootCmd.PersistentFlags().StringVar(&cfgPager, "pager", pager.FindPager(), "program to page zb output")
 	rootCmd.PersistentFlags().StringSlice("directory", []string{}, "notebook directories")
 

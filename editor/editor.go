@@ -2,15 +2,17 @@ package editor
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/msp301/zb/util"
 	"github.com/spf13/viper"
 )
+
+const filePlaceholder = "{file}"
+const linePlaceholder = "{line}"
 
 func FindEditor() string {
 	editor := viper.GetString("editor")
@@ -33,7 +35,7 @@ func Command(path string, line int) (*exec.Cmd, error) {
 	}
 
 	command := util.Command(editor)
-	command.Args = append(command.Args, locationArgs(command.Args[0], path, line)...)
+	command.Args = append(command.Args[:1], arguments(command.Args[1:], path, line)...)
 
 	return command, nil
 }
@@ -51,29 +53,25 @@ func Open(path string) error {
 	return command.Run()
 }
 
-func locationArgs(program string, path string, line int) []string {
+func arguments(template []string, path string, line int) []string {
 	if line < 1 {
-		return []string{path}
+		line = 1
 	}
 
-	switch programName(program) {
-	case "vi", "vim", "nvim", "gvim", "nano", "emacs", "emacsclient", "micro", "kak", "joe", "mg", "ne":
-		return []string{fmt.Sprintf("+%d", line), path}
-	case "code", "code-insiders", "codium", "cursor", "windsurf":
-		return []string{"--goto", fmt.Sprintf("%s:%d", path, line)}
-	case "hx", "helix", "subl", "zed":
-		return []string{fmt.Sprintf("%s:%d", path, line)}
-	case "notepad++":
-		return []string{fmt.Sprintf("-n%d", line), path}
+	replacer := strings.NewReplacer(filePlaceholder, path, linePlaceholder, strconv.Itoa(line))
+
+	hasFile := false
+	args := make([]string, 0, len(template)+1)
+	for _, arg := range template {
+		if strings.Contains(arg, filePlaceholder) {
+			hasFile = true
+		}
+		args = append(args, replacer.Replace(arg))
 	}
 
-	return []string{path}
-}
-
-func programName(program string) string {
-	name := strings.ToLower(filepath.Base(program))
-	for _, suffix := range []string{".exe", ".cmd", ".bat"} {
-		name = strings.TrimSuffix(name, suffix)
+	if !hasFile {
+		args = append(args, path)
 	}
-	return name
+
+	return args
 }

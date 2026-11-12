@@ -23,7 +23,13 @@ With an empty query the most recent notes are listed.
   Shift+Tab          go back to the previous list
   Enter              open the selected note in your editor
   Esc                clear the query, go back, then quit
-  Ctrl+C             quit`,
+  Ctrl+C             quit
+
+To open notes at the matched line, include placeholders in the editor
+setting, for example:
+
+  zb config editor "nvim +{line} {file}"
+  zb config editor "code --goto {file}:{line}"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dirs := bookDirs()
 		err := browser.Run(browser.Options{
