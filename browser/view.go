@@ -7,11 +7,10 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/msp301/zb"
 )
 
 const sideBySideWidth = 80
-const keyHelp = "Up/Down select  PgUp/PgDn scroll  Tab related/narrow  Shift+Tab back  Enter edit/open tag  Esc clear/quit"
+const keyHelp = "Up/Down select  PgUp/PgDn scroll  # tags  Tab related  Shift+Tab back  Enter edit  Esc clear/quit"
 
 var (
 	dimStyle      = lipgloss.NewStyle().Faint(true)
@@ -31,7 +30,7 @@ type layout struct {
 }
 
 func (m *model) layout() layout {
-	body := max(m.height-3, 2)
+	body := max(m.height-4, 2)
 
 	if m.width >= sideBySideWidth {
 		listWidth := min(max(m.width/3, 30), 50)
@@ -69,14 +68,7 @@ func (m *model) showSelected() {
 		return
 	}
 
-	width := m.layout().previewWidth
-	var lines []string
-	matchLine := 0
-	if selected.note != nil {
-		lines, matchLine = m.notePreview(selected, width)
-	} else {
-		lines = m.tagPreview(selected, width)
-	}
+	lines, matchLine := m.notePreview(selected, m.layout().previewWidth)
 
 	m.preview.SetContent(strings.Join(lines, "\n"))
 	m.preview.SetYOffset(max(matchLine-m.preview.Height/3, 0))
@@ -116,43 +108,6 @@ func (m *model) notePreview(selected row, width int) ([]string, int) {
 	return lines, matchLine
 }
 
-func (m *model) tagPreview(selected row, width int) []string {
-	notes := taggedNotes(m.book, selected.tagId)
-	hint := count(len(notes), "note") + ", press Enter to browse"
-	if len(m.current().tagTerms()) > 0 {
-		total := len(notes)
-		notes = m.withinResults(notes)
-		hint = fmt.Sprintf("%d of %s here, Tab to narrow, Enter for all", len(notes), count(total, "note"))
-	}
-
-	lines := []string{
-		tagStyle.Bold(true).Render(selected.tag),
-		dimStyle.Render(hint),
-		"",
-	}
-	for _, note := range notes {
-		lines = append(lines, ansi.Truncate(note.Title, width, "…"))
-	}
-	return lines
-}
-
-func (m *model) withinResults(notes []zb.Note) []zb.Note {
-	listed := make(map[uint64]bool)
-	for _, r := range m.rows {
-		if r.note != nil {
-			listed[r.note.Id] = true
-		}
-	}
-
-	var within []zb.Note
-	for _, note := range notes {
-		if listed[note.Id] {
-			within = append(within, note)
-		}
-	}
-	return within
-}
-
 func (m *model) relativePath(file string) string {
 	for _, dir := range m.options.Dirs {
 		relative, err := filepath.Rel(dir, file)
@@ -177,7 +132,7 @@ func (m *model) View() string {
 	}
 
 	l := m.layout()
-	lines := []string{m.input.View(), m.breadcrumb()}
+	lines := []string{m.input.View(), m.facetLine(), m.breadcrumb()}
 
 	list := m.listLines(l)
 	preview := strings.Split(m.preview.View(), "\n")
@@ -199,6 +154,25 @@ func (m *model) View() string {
 	lines = append(lines, m.footer())
 
 	return strings.Join(lines, "\n")
+}
+
+func (m *model) facetLine() string {
+	var parts []string
+	width := 0
+	for index, f := range m.facets {
+		count := fmt.Sprintf(" %d", f.count)
+		width += ansi.StringWidth(f.tag+count) + 2
+		if width > m.width {
+			break
+		}
+
+		style := tagStyle
+		if index == 0 && m.suggestion != "" {
+			style = tagStyle.Bold(true).Underline(true)
+		}
+		parts = append(parts, style.Render(f.tag)+dimStyle.Render(count))
+	}
+	return strings.Join(parts, "  ")
 }
 
 func (m *model) breadcrumb() string {
@@ -245,10 +219,6 @@ func renderRow(r row, selected bool, width int) string {
 		return selectedStyle.Render(pad(ansi.Truncate(text, width, "…"), width))
 	}
 
-	if r.note == nil {
-		return pad(tagStyle.Render(ansi.Truncate(r.title, width, "…")), width)
-	}
-
 	title := ansi.Truncate(r.title, width, "…")
 	line := title
 	remaining := width - ansi.StringWidth(title) - 2
@@ -270,7 +240,17 @@ func (m *model) footer() string {
 		return statusStyle.Render(ansi.Truncate(m.status, m.width, "…"))
 	}
 
-	return dimStyle.Render(ansi.Truncate(count(len(m.rows), "result")+"  |  "+keyHelp, m.width, "…"))
+	return dimStyle.Render(ansi.Truncate(count(len(m.rows), "result")+"  |  "+m.keyHelp(), m.width, "…"))
+}
+
+func (m *model) keyHelp() string {
+	if m.suggestion == "" {
+		return keyHelp
+	}
+	if base, _ := splitPartial(m.current().query); len(base) == 0 {
+		return "Tab complete " + m.suggestion + "  Esc clear"
+	}
+	return "Tab add " + m.suggestion + "  Enter show only " + m.suggestion + "  Esc clear"
 }
 
 func count(number int, noun string) string {

@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -90,6 +91,17 @@ func titles(m *model) []string {
 	return titles
 }
 
+func expectFacets(t *testing.T, m *model, want ...string) {
+	t.Helper()
+	var got []string
+	for _, f := range m.facets {
+		got = append(got, fmt.Sprintf("%s %d", f.tag, f.count))
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Expected tags: %v\nGot: %v", want, got)
+	}
+}
+
 func expectTitles(t *testing.T, m *model, want ...string) {
 	t.Helper()
 	if got := titles(m); !reflect.DeepEqual(got, want) {
@@ -114,7 +126,7 @@ func TestSelectionWrapsAroundTheList(t *testing.T) {
 
 	press(m, tea.KeyDown)
 
-	if selected, _ := m.selected(); selected.title != "#database" {
+	if selected, _ := m.selected(); selected.title != "Schema diagrams" {
 		t.Fatalf("Expected down on the last row to select the first, got %q", selected.title)
 	}
 }
@@ -154,9 +166,8 @@ func TestTabShowsRelatedAndShiftTabReturns(t *testing.T) {
 	if got := m.current().label(); got != "related: Graph theory" {
 		t.Fatalf("Expected to be viewing related notes, got %q", got)
 	}
-	if got := titles(m); !contains(got, "Zettelkasten method") || !contains(got, "#maths") {
-		t.Fatalf("Expected linked note and tag, got %v", got)
-	}
+	expectTitles(t, m, "Zettelkasten method")
+	expectFacets(t, m, "#maths 1")
 
 	press(m, tea.KeyShiftTab)
 
@@ -166,58 +177,122 @@ func TestTabShowsRelatedAndShiftTabReturns(t *testing.T) {
 	}
 }
 
-func TestTagSearchHidesTheSearchedTag(t *testing.T) {
+func TestTagSearchListsNotesAndShowsOtherTagsAsFacets(t *testing.T) {
 	m := newTestModel(t, "#diagrams")
 
-	expectTitles(t, m, "#database", "Schema diagrams", "Sequence diagrams")
+	expectTitles(t, m, "Schema diagrams", "Sequence diagrams")
+	expectFacets(t, m, "#database 1")
+	if !strings.Contains(m.View(), "#database 1") {
+		t.Fatalf("Expected related tags under the query, got:\n%s", m.View())
+	}
 }
 
-func TestTabOnTagNarrowsTagSearch(t *testing.T) {
-	m := newTestModel(t, "#diagrams")
+func TestTypingHashSuggestsTheMostUsedTag(t *testing.T) {
+	m := newTestModel(t, "")
+
+	typeText(m, "#")
+
+	if m.suggestion != "#database" {
+		t.Fatalf("Expected the most used tag to be suggested, got %q", m.suggestion)
+	}
+	expectFacets(t, m, "#database 2", "#diagrams 2", "#baking 1", "#maths 1", "#notes 1")
+	expectTitles(t, m, "Schema diagrams", "Index tuning")
+}
+
+func TestTabCompletesTheSuggestedTag(t *testing.T) {
+	m := newTestModel(t, "")
+	typeText(m, "#di")
 
 	press(m, tea.KeyTab)
 
-	if got := m.input.Value(); got != "#diagrams #database" {
+	if got := m.input.Value(); got != "#diagrams " {
+		t.Fatalf("Expected the tag to be completed, got %q", got)
+	}
+	if len(m.history) != 1 {
+		t.Fatalf("Expected completing the first tag to stay in place, got %d entries", len(m.history))
+	}
+	expectTitles(t, m, "Schema diagrams", "Sequence diagrams")
+}
+
+func TestTabNarrowsTagSearchWithSuggestedTag(t *testing.T) {
+	m := newTestModel(t, "#diagrams")
+	typeText(m, " #da")
+
+	if m.suggestion != "#database" {
+		t.Fatalf("Expected a tag of the listed notes to be suggested, got %q", m.suggestion)
+	}
+	expectTitles(t, m, "Schema diagrams")
+
+	press(m, tea.KeyTab)
+
+	if got := m.input.Value(); got != "#diagrams #database " {
 		t.Fatalf("Expected the tag to be added to the query, got %q", got)
 	}
 	expectTitles(t, m, "Schema diagrams")
 
 	press(m, tea.KeyShiftTab)
 
-	expectTitles(t, m, "#database", "Schema diagrams", "Sequence diagrams")
+	if got := m.input.Value(); got != "#diagrams" {
+		t.Fatalf("Expected to return to the broader search, got %q", got)
+	}
+	expectTitles(t, m, "Schema diagrams", "Sequence diagrams")
 }
 
-func TestEnterOnTagSearchesOnlyThatTag(t *testing.T) {
+func TestEnterSearchesOnlyTheSuggestedTag(t *testing.T) {
 	m := newTestModel(t, "#diagrams")
+	typeText(m, " #da")
 
 	press(m, tea.KeyEnter)
 
-	if got := m.input.Value(); got != "#database" {
-		t.Fatalf("Expected query to be the tag, got %q", got)
+	if got := m.input.Value(); got != "#database " {
+		t.Fatalf("Expected query to be the tag alone, got %q", got)
 	}
-	if len(m.history) != 2 {
-		t.Fatalf("Expected a new history entry, got %d", len(m.history))
+	expectTitles(t, m, "Schema diagrams", "Index tuning")
+
+	press(m, tea.KeyShiftTab)
+
+	if got := m.input.Value(); got != "#diagrams" {
+		t.Fatalf("Expected to return to the previous search, got %q", got)
 	}
-	expectTitles(t, m, "#diagrams", "Schema diagrams", "Index tuning")
 }
 
-func TestTabOnTagOfRelatedNoteSearchesThatTag(t *testing.T) {
+func TestSuggestionsOnlyOfferTagsOfTheListedNotes(t *testing.T) {
+	m := newTestModel(t, "#diagrams")
+
+	typeText(m, " #")
+
+	expectFacets(t, m, "#database 1")
+}
+
+func TestCompleteTagIsNotSuggested(t *testing.T) {
+	m := newTestModel(t, "#diagrams")
+
+	press(m, tea.KeyTab)
+
+	if got := m.current().label(); got != "related: Schema diagrams" {
+		t.Fatalf("Expected Tab to show related notes, got %q", got)
+	}
+}
+
+func TestTagsOfTheRelatedNoteAreSuggestedFirst(t *testing.T) {
 	m := newTestModel(t, "starter")
 	press(m, tea.KeyTab)
 
-	press(m, tea.KeyTab)
+	typeText(m, "#")
 
-	if got := m.input.Value(); got != "#baking" {
-		t.Fatalf("Expected query to be the tag, got %q", got)
+	if m.suggestion != "#baking" {
+		t.Fatalf("Expected the note's own tag to be suggested, got %q", m.suggestion)
 	}
 }
 
-func TestTagPreviewCountsNotesWithinTagSearch(t *testing.T) {
-	m := newTestModel(t, "#diagrams")
+func TestTextAndTagsSearchTogether(t *testing.T) {
+	m := newTestModel(t, "time #diagrams")
 
-	if !strings.Contains(m.View(), "1 of 2 notes here") {
-		t.Fatalf("Expected preview to count the notes narrowing would keep, got:\n%s", m.View())
-	}
+	expectTitles(t, m, "Sequence diagrams")
+
+	m = newTestModel(t, "starter #diagrams")
+
+	expectTitles(t, m)
 }
 
 func TestTypingInRelatedViewStartsNewSearch(t *testing.T) {

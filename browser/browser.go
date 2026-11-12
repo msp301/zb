@@ -32,10 +32,10 @@ func (loc location) label() string {
 	if loc.note != nil {
 		return "related: " + loc.note.Title
 	}
-	if strings.TrimSpace(loc.query) == "" {
-		return "recent"
+	if query := strings.TrimSpace(loc.query); query != "" {
+		return query
 	}
-	return loc.query
+	return "recent"
 }
 
 type searchDueMsg struct{ generation int }
@@ -59,6 +59,12 @@ type model struct {
 	preview    viewport.Model
 	history    []location
 	rows       []row
+	facets     []facet
+	suggestion string
+	tagTotals  map[string]int
+	knownTags  map[string]bool
+	baseQuery  string
+	baseCounts map[string]int
 	listOffset int
 	width      int
 	height     int
@@ -86,6 +92,7 @@ func newModel(options Options, book *notebook.Notebook) *model {
 	input.Cursor.SetMode(cursor.CursorStatic)
 	input.SetValue(options.Query)
 	input.CursorEnd()
+	input.ShowSuggestions = true
 	input.Focus()
 
 	m := &model{
@@ -96,8 +103,11 @@ func newModel(options Options, book *notebook.Notebook) *model {
 		history: []location{{query: options.Query}},
 		delay:   searchDelay,
 	}
-	m.rows = lookup(book, m.history[0])
+	m.indexTags()
 	m.syncInput()
+	m.syncFacets()
+	m.rows = lookup(book, m.target())
+	m.syncFacets()
 
 	return m
 }
@@ -129,6 +139,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.generation == m.generation {
 			m.rows = msg.rows
 			m.applied = msg.generation
+			m.syncFacets()
 			m.clampCursor()
 			m.showSelected()
 		}
@@ -154,6 +165,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.book = msg.book
+		m.indexTags()
+		m.syncFacets()
 		return m, m.refresh(0)
 
 	case tea.KeyMsg:
@@ -184,10 +197,16 @@ func (m *model) handleKey(msg tea.KeyMsg) tea.Cmd {
 		m.preview.PageDown()
 		return nil
 	case "tab":
-		return m.pivot()
+		if m.suggestion != "" {
+			return m.narrow()
+		}
+		return m.related()
 	case "shift+tab":
 		return m.back()
 	case "enter":
+		if m.suggestion != "" {
+			return m.pivot()
+		}
 		return m.open()
 	}
 
@@ -222,6 +241,7 @@ func (m *model) edit(query string) tea.Cmd {
 		m.current().cursor = 0
 	}
 	m.listOffset = 0
+	m.syncFacets()
 
 	return m.refresh(m.delay)
 }
@@ -237,26 +257,37 @@ func (m *model) escape() tea.Cmd {
 	return tea.Quit
 }
 
-func (m *model) pivot() tea.Cmd {
+func (m *model) related() tea.Cmd {
 	selected, ok := m.selected()
 	if !ok {
 		return nil
 	}
-
-	switch active := m.current().tagTerms(); {
-	case selected.note != nil:
-		m.history = append(m.history, location{note: selected.note})
-	case len(active) > 0:
-		m.history = append(m.history, location{query: strings.Join(append(active, selected.tag), " ")})
-	default:
-		m.history = append(m.history, location{query: selected.tag})
-	}
+	m.history = append(m.history, location{note: selected.note})
 
 	return m.jump()
 }
 
-func (m *model) jumpToTag(tag string) tea.Cmd {
-	m.history = append(m.history, location{query: tag})
+func (m *model) narrow() tea.Cmd {
+	base, _ := splitPartial(m.current().query)
+
+	return m.follow(base, append(base[:len(base):len(base)], m.suggestion))
+}
+
+func (m *model) pivot() tea.Cmd {
+	base, _ := splitPartial(m.current().query)
+
+	return m.follow(base, []string{m.suggestion})
+}
+
+func (m *model) follow(base []string, terms []string) tea.Cmd {
+	query := strings.Join(terms, " ") + " "
+	m.current().cursor = 0
+	if len(base) == 0 {
+		m.current().query = query
+	} else {
+		m.current().query = strings.Join(base, " ")
+		m.history = append(m.history, location{query: query})
+	}
 
 	return m.jump()
 }
@@ -274,6 +305,7 @@ func (m *model) jump() tea.Cmd {
 	m.rows = nil
 	m.listOffset = 0
 	m.syncInput()
+	m.syncFacets()
 	m.showSelected()
 
 	return m.refresh(0)
@@ -284,10 +316,6 @@ func (m *model) open() tea.Cmd {
 	if !ok {
 		return nil
 	}
-	if selected.note == nil {
-		return m.jumpToTag(selected.tag)
-	}
-
 	command, err := editor.Command(selected.note.File, selected.line)
 	if err != nil {
 		m.status = err.Error()
@@ -311,7 +339,7 @@ func (m *model) refresh(delay time.Duration) tea.Cmd {
 func (m *model) search() tea.Cmd {
 	m.searching = true
 	book := m.book
-	loc := *m.current()
+	loc := m.target()
 	generation := m.generation
 
 	return func() tea.Msg {
@@ -358,4 +386,78 @@ func (m *model) syncPlaceholder() {
 		return
 	}
 	m.input.Placeholder = "Search notes, or #tag (showing recent notes)"
+}
+
+func (m *model) target() location {
+	loc := *m.current()
+	if m.suggestion != "" {
+		base, _ := splitPartial(loc.query)
+		loc.query = strings.Join(append(base[:len(base):len(base)], m.suggestion), " ")
+	}
+	return loc
+}
+
+func (m *model) indexTags() {
+	m.tagTotals = tagCounts(allNotes(m.book))
+	m.knownTags = make(map[string]bool, len(m.tagTotals))
+	for tag := range m.tagTotals {
+		m.knownTags[strings.ToLower(tag)] = true
+	}
+	m.baseCounts = nil
+}
+
+func (m *model) syncFacets() {
+	m.facets, m.suggestion = m.currentFacets()
+
+	query := m.current().query
+	_, partial := splitPartial(query)
+	if m.suggestion == "" || !hasPrefixFold(m.suggestion, partial) {
+		m.input.SetSuggestions(nil)
+		return
+	}
+	m.input.SetSuggestions([]string{query[:len(query)-len(partial)] + m.suggestion})
+}
+
+func (m *model) currentFacets() ([]facet, string) {
+	loc := m.current()
+	if loc.note != nil {
+		counts := make(map[string]int, len(loc.note.Tags))
+		for _, tag := range loc.note.Tags {
+			counts[tag] = m.tagTotals[tag]
+		}
+		return rank(counts, nil), ""
+	}
+
+	base, partial := splitPartial(loc.query)
+	if partial != "" && !m.knownTags[strings.ToLower(partial)] {
+		candidates := complete(rank(m.countsWithin(base), base), partial, m.preferredTags(base))
+		if len(candidates) > 0 {
+			return candidates, candidates[0].tag
+		}
+	}
+
+	return rank(tagCounts(rowNotes(m.rows)), strings.Fields(loc.query)), ""
+}
+
+func (m *model) countsWithin(base []string) map[string]int {
+	if len(base) == 0 {
+		return m.tagTotals
+	}
+
+	query := strings.Join(base, " ")
+	if m.baseCounts == nil || m.baseQuery != query {
+		m.baseQuery = query
+		m.baseCounts = tagCounts(rowNotes(lookup(m.book, location{query: query})))
+	}
+	return m.baseCounts
+}
+
+func (m *model) preferredTags(base []string) []string {
+	if len(base) > 0 || len(m.history) < 2 {
+		return nil
+	}
+	if previous := m.history[len(m.history)-2]; previous.note != nil {
+		return previous.note.Tags
+	}
+	return nil
 }
