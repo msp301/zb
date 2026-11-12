@@ -117,6 +117,10 @@ func toRows(results []notebook.Result) []row {
 		}
 		rows = append(rows, row{title: note.Title, context: context, line: line, note: &note})
 	}
+
+	sort.SliceStable(rows, func(i, j int) bool {
+		return rows[i].note.Id > rows[j].note.Id
+	})
 	return rows
 }
 

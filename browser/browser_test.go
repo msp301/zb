@@ -120,13 +120,13 @@ func TestSelectionWrapsAroundTheList(t *testing.T) {
 
 	press(m, tea.KeyUp)
 
-	if selected, _ := m.selected(); selected.title != "Sequence diagrams" {
+	if selected, _ := m.selected(); selected.title != "Schema diagrams" {
 		t.Fatalf("Expected up on the first row to select the last, got %q", selected.title)
 	}
 
 	press(m, tea.KeyDown)
 
-	if selected, _ := m.selected(); selected.title != "Schema diagrams" {
+	if selected, _ := m.selected(); selected.title != "Sequence diagrams" {
 		t.Fatalf("Expected down on the last row to select the first, got %q", selected.title)
 	}
 }
@@ -180,7 +180,7 @@ func TestTabShowsRelatedAndShiftTabReturns(t *testing.T) {
 func TestTagSearchListsNotesAndShowsOtherTagsAsFacets(t *testing.T) {
 	m := newTestModel(t, "#diagrams")
 
-	expectTitles(t, m, "Schema diagrams", "Sequence diagrams")
+	expectTitles(t, m, "Sequence diagrams", "Schema diagrams")
 	expectFacets(t, m, "#database 1")
 	if !strings.Contains(m.View(), "#database 1") {
 		t.Fatalf("Expected related tags under the query, got:\n%s", m.View())
@@ -196,7 +196,7 @@ func TestTypingHashSuggestsTheMostUsedTag(t *testing.T) {
 		t.Fatalf("Expected the most used tag to be suggested, got %q", m.suggestion)
 	}
 	expectFacets(t, m, "#database 2", "#diagrams 2", "#baking 1", "#maths 1", "#notes 1")
-	expectTitles(t, m, "Schema diagrams", "Index tuning")
+	expectTitles(t, m, "Index tuning", "Schema diagrams")
 }
 
 func TestTabCompletesTheSuggestedTag(t *testing.T) {
@@ -211,7 +211,7 @@ func TestTabCompletesTheSuggestedTag(t *testing.T) {
 	if len(m.history) != 1 {
 		t.Fatalf("Expected completing the first tag to stay in place, got %d entries", len(m.history))
 	}
-	expectTitles(t, m, "Schema diagrams", "Sequence diagrams")
+	expectTitles(t, m, "Sequence diagrams", "Schema diagrams")
 }
 
 func TestTabNarrowsTagSearchWithSuggestedTag(t *testing.T) {
@@ -235,7 +235,7 @@ func TestTabNarrowsTagSearchWithSuggestedTag(t *testing.T) {
 	if got := m.input.Value(); got != "#diagrams" {
 		t.Fatalf("Expected to return to the broader search, got %q", got)
 	}
-	expectTitles(t, m, "Schema diagrams", "Sequence diagrams")
+	expectTitles(t, m, "Sequence diagrams", "Schema diagrams")
 }
 
 func TestEnterSearchesOnlyTheSuggestedTag(t *testing.T) {
@@ -247,7 +247,7 @@ func TestEnterSearchesOnlyTheSuggestedTag(t *testing.T) {
 	if got := m.input.Value(); got != "#database " {
 		t.Fatalf("Expected query to be the tag alone, got %q", got)
 	}
-	expectTitles(t, m, "Schema diagrams", "Index tuning")
+	expectTitles(t, m, "Index tuning", "Schema diagrams")
 
 	press(m, tea.KeyShiftTab)
 
@@ -269,7 +269,7 @@ func TestCompleteTagIsNotSuggested(t *testing.T) {
 
 	press(m, tea.KeyTab)
 
-	if got := m.current().label(); got != "related: Schema diagrams" {
+	if got := m.current().label(); got != "related: Sequence diagrams" {
 		t.Fatalf("Expected Tab to show related notes, got %q", got)
 	}
 }
@@ -482,4 +482,20 @@ func TestClickingOutsideTheRowsKeepsTheSelection(t *testing.T) {
 	if m.current().cursor != 0 {
 		t.Fatalf("expected the selection to stay on the first row, got %d", m.current().cursor)
 	}
+}
+
+func TestTagSearchListsMostRecentNotesFirst(t *testing.T) {
+	m := newTestModel(t, "")
+
+	typeText(m, "#diagrams")
+
+	expectTitles(t, m, "Sequence diagrams", "Schema diagrams")
+}
+
+func TestTextSearchListsMostRecentNotesFirst(t *testing.T) {
+	m := newTestModel(t, "")
+
+	typeText(m, "diagrams")
+
+	expectTitles(t, m, "Sequence diagrams", "Schema diagrams")
 }
