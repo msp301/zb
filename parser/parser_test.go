@@ -136,3 +136,21 @@ func TestParseMultiNoteFile(t *testing.T) {
 		}
 	}
 }
+
+func TestParseIgnoresTagsInFencedCodeBlocks(t *testing.T) {
+	got := Parse("examples/code_blocks.md")
+	want := []zb.Note{
+		{
+			Content: "# Tags in code blocks\n\nA #real tag.\n\n```mermaid\nnote1 --> #foo\n```\n\n~~~\n#bar\n```\n#baz\n~~~\n\nAfter the #code block.",
+			File:    "examples/code_blocks.md",
+			Id:      202611122330,
+			Links:   nil,
+			Start:   3,
+			Tags:    []string{"#real", "#code"},
+			Title:   "Tags in code blocks",
+		},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Unexpected note: %+v\n\nWanted: %+v", got, want)
+	}
+}

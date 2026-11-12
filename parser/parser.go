@@ -32,6 +32,7 @@ func Parse(filepath string) []zb.Note {
 	var ids []uint64
 	tagMap := map[string]int{}
 	var links []uint64
+	var fence string
 
 	lineNum := 0
 	for fileScanner.Scan() {
@@ -66,6 +67,7 @@ func Parse(filepath string) []zb.Note {
 			links = []uint64{}
 			tagMap = map[string]int{}
 			title = ""
+			fence = ""
 
 			continue
 		}
@@ -90,7 +92,15 @@ func Parse(filepath string) []zb.Note {
 			}
 		}
 
-		if strings.Contains(line, `#`) {
+		if marker := fenceMarker(line); marker != "" {
+			if fence == "" {
+				fence = marker
+			} else if fence == marker {
+				fence = ""
+			}
+		}
+
+		if fence == "" && strings.Contains(line, `#`) {
 			for _, match := range util.TagRegex.FindAllStringSubmatch(line, -1) {
 				tag := match[1]
 				if tagMap[tag] == 0 && !strings.Contains(line, fmt.Sprintf("\\%s", tag)) {
@@ -123,4 +133,14 @@ func Parse(filepath string) []zb.Note {
 	notes = append(notes, note)
 
 	return notes
+}
+
+func fenceMarker(line string) string {
+	trimmed := strings.TrimSpace(line)
+	for _, marker := range []string{"```", "~~~"} {
+		if strings.HasPrefix(trimmed, marker) {
+			return marker
+		}
+	}
+	return ""
 }
