@@ -20,7 +20,7 @@ func (l *Loader) Load(paths ...string) error {
 	for _, dir := range paths {
 		err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
-				log.Fatalf(err.Error())
+				log.Fatal(err)
 			}
 
 			_, err = util.FileId(path)

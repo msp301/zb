@@ -43,7 +43,7 @@ func (book *Notebook) Read(paths ...string) []zb.Note {
 		fileId, err := util.FileId(path)
 		if err != nil {
 			if book.Strict {
-				log.Fatalf(err.Error())
+				log.Fatal(err)
 			}
 			continue
 		}
