@@ -320,7 +320,10 @@ func (m *model) search() tea.Cmd {
 }
 
 func (m *model) moveCursor(delta int) {
-	m.current().cursor += delta
+	if len(m.rows) > 0 {
+		loc := m.current()
+		loc.cursor = ((loc.cursor+delta)%len(m.rows) + len(m.rows)) % len(m.rows)
+	}
 	m.clampCursor()
 	m.showSelected()
 }

@@ -103,6 +103,22 @@ func TestEmptyQueryListsRecentNotes(t *testing.T) {
 	expectTitles(t, m, "Sourdough starter", "Zettelkasten method", "Graph theory", "Index tuning", "Sequence diagrams", "Schema diagrams")
 }
 
+func TestSelectionWrapsAroundTheList(t *testing.T) {
+	m := newTestModel(t, "#diagrams")
+
+	press(m, tea.KeyUp)
+
+	if selected, _ := m.selected(); selected.title != "Sequence diagrams" {
+		t.Fatalf("Expected up on the first row to select the last, got %q", selected.title)
+	}
+
+	press(m, tea.KeyDown)
+
+	if selected, _ := m.selected(); selected.title != "#database" {
+		t.Fatalf("Expected down on the last row to select the first, got %q", selected.title)
+	}
+}
+
 func TestTypingSearchesNoteText(t *testing.T) {
 	m := newTestModel(t, "")
 
