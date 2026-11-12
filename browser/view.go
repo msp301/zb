@@ -7,10 +7,11 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/msp301/zb"
 )
 
 const sideBySideWidth = 80
-const keyHelp = "Up/Down select  PgUp/PgDn scroll  Tab related  Shift+Tab back  Enter edit  Esc clear/quit"
+const keyHelp = "Up/Down select  PgUp/PgDn scroll  Tab related/narrow  Shift+Tab back  Enter edit/open tag  Esc clear/quit"
 
 var (
 	dimStyle      = lipgloss.NewStyle().Faint(true)
@@ -117,15 +118,39 @@ func (m *model) notePreview(selected row, width int) ([]string, int) {
 
 func (m *model) tagPreview(selected row, width int) []string {
 	notes := taggedNotes(m.book, selected.tagId)
+	hint := count(len(notes), "note") + ", press Enter to browse"
+	if len(m.current().tagTerms()) > 0 {
+		total := len(notes)
+		notes = m.withinResults(notes)
+		hint = fmt.Sprintf("%d of %s here, Tab to narrow, Enter for all", len(notes), count(total, "note"))
+	}
+
 	lines := []string{
 		tagStyle.Bold(true).Render(selected.tag),
-		dimStyle.Render(count(len(notes), "note") + ", press Tab to browse"),
+		dimStyle.Render(hint),
 		"",
 	}
 	for _, note := range notes {
 		lines = append(lines, ansi.Truncate(note.Title, width, "…"))
 	}
 	return lines
+}
+
+func (m *model) withinResults(notes []zb.Note) []zb.Note {
+	listed := make(map[uint64]bool)
+	for _, r := range m.rows {
+		if r.note != nil {
+			listed[r.note.Id] = true
+		}
+	}
+
+	var within []zb.Note
+	for _, note := range notes {
+		if listed[note.Id] {
+			within = append(within, note)
+		}
+	}
+	return within
 }
 
 func (m *model) relativePath(file string) string {

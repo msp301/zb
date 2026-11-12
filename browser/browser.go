@@ -243,11 +243,20 @@ func (m *model) pivot() tea.Cmd {
 		return nil
 	}
 
-	if selected.note != nil {
+	switch active := m.current().tagTerms(); {
+	case selected.note != nil:
 		m.history = append(m.history, location{note: selected.note})
-	} else {
+	case len(active) > 0:
+		m.history = append(m.history, location{query: strings.Join(append(active, selected.tag), " ")})
+	default:
 		m.history = append(m.history, location{query: selected.tag})
 	}
+
+	return m.jump()
+}
+
+func (m *model) jumpToTag(tag string) tea.Cmd {
+	m.history = append(m.history, location{query: tag})
 
 	return m.jump()
 }
@@ -276,7 +285,7 @@ func (m *model) open() tea.Cmd {
 		return nil
 	}
 	if selected.note == nil {
-		return m.pivot()
+		return m.jumpToTag(selected.tag)
 	}
 
 	command, err := editor.Command(selected.note.File, selected.line)

@@ -19,9 +19,11 @@ With an empty query the most recent notes are listed.
 
   Up / Down          select a result
   PgUp / PgDn        scroll the note being read
-  Tab                show what is related to the selected note or tag
+  Tab                show what is related to the selected note, or narrow
+                     a tag search to notes that also have the selected tag
   Shift+Tab          go back to the previous list
-  Enter              open the selected note in your editor
+  Enter              open the selected note in your editor, or list every
+                     note with the selected tag
   Esc                clear the query, go back, then quit
   Ctrl+C             quit
 

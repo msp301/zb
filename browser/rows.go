@@ -20,17 +20,40 @@ type row struct {
 
 func lookup(book *notebook.Notebook, loc location) []row {
 	rows := toRows(results(book, loc))
-	if loc.note == nil {
-		return rows
+	active := loc.tagTerms()
+
+	kept := rows[:0]
+	for _, r := range rows {
+		if r.note != nil && loc.note != nil && r.note.Id == loc.note.Id {
+			continue
+		}
+		if r.note == nil && containsFold(active, r.tag) {
+			continue
+		}
+		kept = append(kept, r)
+	}
+	return kept
+}
+
+func (loc location) tagTerms() []string {
+	if loc.note != nil {
+		return nil
 	}
 
-	related := rows[:0]
-	for _, r := range rows {
-		if r.note == nil || r.note.Id != loc.note.Id {
-			related = append(related, r)
+	terms := strings.Fields(loc.query)
+	if !isTagQuery(terms) {
+		return nil
+	}
+	return terms
+}
+
+func containsFold(values []string, want string) bool {
+	for _, value := range values {
+		if strings.EqualFold(value, want) {
+			return true
 		}
 	}
-	return related
+	return false
 }
 
 func results(book *notebook.Notebook, loc location) []notebook.Result {
