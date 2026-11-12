@@ -373,3 +373,71 @@ func TestRelatedViewExcludesTheNoteItself(t *testing.T) {
 		t.Fatalf("Expected the note itself to be left out, got %v", got)
 	}
 }
+
+func wheel(m *model, button tea.MouseButton, x int, y int) {
+	send(m, tea.MouseMsg{Action: tea.MouseActionPress, Button: button, X: x, Y: y})
+}
+
+func TestWheelOverPreviewScrollsTheNoteAndKeepsTheSelection(t *testing.T) {
+	m := newTestModel(t, "")
+	send(m, tea.WindowSizeMsg{Width: 120, Height: 8})
+	selected, _ := m.selected()
+
+	wheel(m, tea.MouseButtonWheelDown, 100, 4)
+
+	if m.preview.YOffset == 0 {
+		t.Fatal("expected the preview to scroll down")
+	}
+	if m.listOffset != 0 {
+		t.Fatalf("expected the list to stay put, got offset %d", m.listOffset)
+	}
+	if after, _ := m.selected(); after.note != selected.note {
+		t.Fatal("expected the selection to stay on the same note")
+	}
+
+	wheel(m, tea.MouseButtonWheelUp, 100, 4)
+
+	if m.preview.YOffset != 0 {
+		t.Fatalf("expected the preview to scroll back to the top, got offset %d", m.preview.YOffset)
+	}
+}
+
+func TestWheelOverListScrollsTheListAndKeepsTheSelectionVisible(t *testing.T) {
+	m := newTestModel(t, "")
+	send(m, tea.WindowSizeMsg{Width: 120, Height: 8})
+
+	wheel(m, tea.MouseButtonWheelDown, 5, 4)
+
+	if m.listOffset != 2 {
+		t.Fatalf("expected the list to scroll to its end, got offset %d", m.listOffset)
+	}
+	if m.current().cursor != 2 {
+		t.Fatalf("expected the selection to follow the list, got %d", m.current().cursor)
+	}
+	if m.preview.YOffset != 0 {
+		t.Fatalf("expected the preview to stay at the top, got offset %d", m.preview.YOffset)
+	}
+
+	wheel(m, tea.MouseButtonWheelUp, 5, 4)
+
+	if m.listOffset != 0 {
+		t.Fatalf("expected the list to scroll back to the top, got offset %d", m.listOffset)
+	}
+}
+
+func TestWheelInStackedLayoutUsesThePaneUnderTheCursor(t *testing.T) {
+	m := newTestModel(t, "")
+	send(m, tea.WindowSizeMsg{Width: 60, Height: 13})
+
+	wheel(m, tea.MouseButtonWheelDown, 5, 3)
+
+	if m.listOffset != 3 || m.preview.YOffset != 0 {
+		t.Fatalf("expected only the list to scroll, got list %d preview %d", m.listOffset, m.preview.YOffset)
+	}
+
+	wheel(m, tea.MouseButtonWheelDown, 5, 8)
+
+	if m.listOffset != 3 || m.preview.YOffset == 0 {
+		t.Fatalf("expected only the preview to scroll, got list %d preview %d", m.listOffset, m.preview.YOffset)
+	}
+}

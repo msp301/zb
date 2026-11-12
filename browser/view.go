@@ -10,6 +10,8 @@ import (
 )
 
 const sideBySideWidth = 80
+const headerHeight = 3
+const dividerWidth = 3
 const keyHelp = "Up/Down select  PgUp/PgDn scroll  # tags  Tab related  Shift+Tab back  Enter edit  Esc clear/quit"
 
 var (
@@ -29,8 +31,43 @@ type layout struct {
 	previewHeight int
 }
 
+type pane int
+
+const (
+	noPane pane = iota
+	listPane
+	previewPane
+)
+
+func (l layout) paneAt(x, y int) pane {
+	row := y - headerHeight
+	if row < 0 {
+		return noPane
+	}
+
+	if l.sideBySide {
+		switch {
+		case row >= l.listHeight:
+			return noPane
+		case x < l.listWidth:
+			return listPane
+		case x >= l.listWidth+dividerWidth:
+			return previewPane
+		}
+		return noPane
+	}
+
+	switch {
+	case row < l.listHeight:
+		return listPane
+	case row > l.listHeight && row <= l.listHeight+l.previewHeight:
+		return previewPane
+	}
+	return noPane
+}
+
 func (m *model) layout() layout {
-	body := max(m.height-4, 2)
+	body := max(m.height-headerHeight-1, 2)
 
 	if m.width >= sideBySideWidth {
 		listWidth := min(max(m.width/3, 30), 50)
@@ -38,7 +75,7 @@ func (m *model) layout() layout {
 			sideBySide:    true,
 			listWidth:     listWidth,
 			listHeight:    body,
-			previewWidth:  m.width - listWidth - 3,
+			previewWidth:  m.width - listWidth - dividerWidth,
 			previewHeight: body,
 		}
 	}

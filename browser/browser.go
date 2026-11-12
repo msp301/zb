@@ -15,6 +15,7 @@ import (
 
 const recentLimit = 100
 const searchDelay = 120 * time.Millisecond
+const wheelStep = 3
 
 type Options struct {
 	Dirs  []string
@@ -82,7 +83,7 @@ func Run(options Options) error {
 		return err
 	}
 
-	_, err = tea.NewProgram(newModel(options, book), tea.WithAltScreen()).Run()
+	_, err = tea.NewProgram(newModel(options, book), tea.WithAltScreen(), tea.WithMouseCellMotion()).Run()
 	return err
 }
 
@@ -171,9 +172,45 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		return m, m.handleKey(msg)
+
+	case tea.MouseMsg:
+		m.handleMouse(msg)
+		return m, nil
 	}
 
 	return m, nil
+}
+
+func (m *model) handleMouse(msg tea.MouseMsg) {
+	delta := 0
+	switch msg.Button {
+	case tea.MouseButtonWheelUp:
+		delta = -wheelStep
+	case tea.MouseButtonWheelDown:
+		delta = wheelStep
+	default:
+		return
+	}
+
+	switch m.layout().paneAt(msg.X, msg.Y) {
+	case listPane:
+		m.scrollList(delta)
+	case previewPane:
+		m.preview.SetYOffset(m.preview.YOffset + delta)
+	}
+}
+
+func (m *model) scrollList(delta int) {
+	height := m.layout().listHeight
+	m.listOffset = min(max(m.listOffset+delta, 0), max(len(m.rows)-height, 0))
+
+	loc := m.current()
+	cursor := min(max(loc.cursor, m.listOffset), m.listOffset+height-1)
+	if cursor == loc.cursor || cursor >= len(m.rows) {
+		return
+	}
+	loc.cursor = cursor
+	m.showSelected()
 }
 
 func (m *model) handleKey(msg tea.KeyMsg) tea.Cmd {
